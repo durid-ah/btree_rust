@@ -1,9 +1,7 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct Node {
     keys: Vec<usize>,
-    children: Vec<Rc<RefCell<Node>>>
+    children: Vec<Node>
 }
 
 impl Node {
@@ -38,10 +36,12 @@ impl Node {
 
     /// Return index of the key if found or Option::None otherwise
     pub fn find_key(&self, key: usize) -> Option<usize> {
+         if self.keys.len() == 0 {
+             return Option::None;
+         }
+
         let mut start = 0;
-        let mut end = self.keys.len();
-
-
+        let mut end = self.keys.len() - 1;
 
         while end >= start {
             let mut mid = start + (end - start) / 2;
