@@ -36,6 +36,28 @@ impl Node {
         }
     }
 
+    /// Return index of the key if found or Option::None otherwise
+    pub fn find_key(&self, key: usize) -> Option<usize> {
+        let mut start = 0;
+        let mut end = self.keys.len();
+
+        while end >= start {
+            let mut mid = start + (end - start) / 2;
+
+            if self.keys[mid] == key {
+               return Option::Some(mid);
+            }
+
+            if self.keys[mid] > key {
+                end = mid - 1;
+            } else {
+                start = mid + 1;
+            }
+        }
+
+        return Option::None;
+    }
+
     pub fn get_key(&self, index: usize) -> usize {
         return self.keys[index];
     }
