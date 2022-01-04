@@ -36,25 +36,29 @@ impl Node {
 
     /// Return index of the key if found or Option::None otherwise
     pub fn find_key(&self, key: usize) -> Option<usize> {
-         if self.keys.len() == 0 {
+        let calculate_mid = |start, end| ((end - start) / 2) + start;
+
+        if self.keys.len() == 0 {
              return Option::None;
          }
 
-        let mut start = 0;
-        let mut end = self.keys.len() - 1;
+        let mut start = 0 as isize;
+        let mut end = (self.keys.len() - 1) as isize;
 
         while end >= start {
-            let mut mid = start + (end - start) / 2;
+            let mid: isize = calculate_mid(start, end);
+            let mid_idx = mid as usize;
 
-            if self.keys[mid] == key {
-               return Option::Some(mid);
+            if self.keys[mid_idx] == key {
+               return Option::Some(mid_idx);
             }
 
-            if self.keys[mid] > key {
+            if self.keys[mid_idx] > key {
                 end = mid - 1;
             } else {
                 start = mid + 1;
             }
+
         }
 
         return Option::None;
@@ -103,5 +107,74 @@ mod tests {
         assert_eq!(node.get_key(2), FOURTH);
         assert_eq!(node.get_key(3), THIRD);
         assert_eq!(node.get_key(4), FIFTH);
+    }
+
+    #[test]
+    fn find_key_in_1_element() {
+        let mut node = Node::new(5);
+        node.add_key(5);
+
+        let res = node.find_key(5);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 0);
+
+        let res = node.find_key(3);
+        assert!(res.is_none());
+    }
+
+    #[test]
+    fn find_key_in_2_element() {
+        let mut node = Node::new(5);
+        node.add_key(5);
+        node.add_key(7);
+
+        let res = node.find_key(5);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 0);
+
+        let res = node.find_key(7);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 1);
+
+        let res = node.find_key(3);
+        assert!(res.is_none());
+
+        let res = node.find_key(6);
+        assert!(res.is_none());
+
+        let res = node.find_key(8);
+        assert!(res.is_none());
+    }
+
+    #[test]
+    fn find_key_in_3_element() {
+        let mut node = Node::new(8);
+        node.add_key(5);
+        node.add_key(7);
+        node.add_key(9);
+
+        let res = node.find_key(5);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 0);
+
+        let res = node.find_key(7);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 1);
+
+        let res = node.find_key(9);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 2);
+
+        let res = node.find_key(3);
+        assert!(res.is_none());
+
+        let res = node.find_key(6);
+        assert!(res.is_none());
+
+        let res = node.find_key(8);
+        assert!(res.is_none());
+
+        let res = node.find_key(10);
+        assert!(res.is_none());
     }
 }
