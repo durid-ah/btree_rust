@@ -177,4 +177,45 @@ mod tests {
         let res = node.find_key(10);
         assert!(res.is_none());
     }
+
+    #[test]
+    fn find_key_in_4_element() {
+        let mut node = Node::new(8);
+        node.add_key(5);
+        node.add_key(7);
+        node.add_key(9);
+        node.add_key(11);
+
+
+        let res = node.find_key(5);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 0);
+
+        let res = node.find_key(7);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 1);
+
+        let res = node.find_key(9);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 2);
+
+        let res = node.find_key(11);
+        assert!(res.is_some());
+        assert_eq!(res.unwrap(), 3);
+
+        let res = node.find_key(3);
+        assert!(res.is_none());
+
+        let res = node.find_key(6);
+        assert!(res.is_none());
+
+        let res = node.find_key(8);
+        assert!(res.is_none());
+
+        let res = node.find_key(10);
+        assert!(res.is_none());
+
+        let res = node.find_key(12);
+        assert!(res.is_none());
+    }
 }
