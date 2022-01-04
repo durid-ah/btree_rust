@@ -13,13 +13,15 @@ impl Node {
     }
 
     pub fn add_key(&mut self, key: usize) {
+        if let Option::Some(idx) = self.find_key(key) {
+            self.keys[idx] = key;
+            return;
+        }
 
         self.keys.push(key);
         let mut new_key_idx = self.keys.len() - 1;
 
-        if new_key_idx == 0 {
-            return;
-        }
+        if new_key_idx == 0 { return; }
 
         let mut current_idx = new_key_idx - 1;
         while self.keys[new_key_idx] < self.keys[current_idx] {
@@ -36,11 +38,12 @@ impl Node {
 
     /// Return index of the key if found or Option::None otherwise
     pub fn find_key(&self, key: usize) -> Option<usize> {
-        let calculate_mid = |start, end| ((end - start) / 2) + start;
+        let calculate_mid =
+            |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
 
         if self.keys.len() == 0 {
-             return Option::None;
-         }
+            return Option::None;
+        }
 
         let mut start = 0 as isize;
         let mut end = (self.keys.len() - 1) as isize;
@@ -50,7 +53,7 @@ impl Node {
             let mid_idx = mid as usize;
 
             if self.keys[mid_idx] == key {
-               return Option::Some(mid_idx);
+                return Option::Some(mid_idx);
             }
 
             if self.keys[mid_idx] > key {
