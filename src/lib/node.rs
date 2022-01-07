@@ -13,16 +13,19 @@ impl Node {
     }
 
     pub fn add_key(&mut self, key: usize) {
+        // if the value already exists just update the location
         if let Option::Some(idx) = self.find_key(key) {
             self.keys[idx] = key;
             return;
         }
 
+        // add the new key at the end
         self.keys.push(key);
         let mut new_key_idx = self.keys.len() - 1;
 
         if new_key_idx == 0 { return; }
 
+        // shift the key to the left until the values are in order
         let mut current_idx = new_key_idx - 1;
         while self.keys[new_key_idx] < self.keys[current_idx] {
             let temp = self.keys[current_idx];
@@ -70,6 +73,8 @@ impl Node {
     pub fn get_key(&self, index: usize) -> usize {
         return self.keys[index];
     }
+
+    pub fn get_child(&self, index: usize) -> &Node { return  &self.children[index]; }
 }
 
 #[cfg(test)]
