@@ -10,7 +10,7 @@ pub struct Node {
 
 impl Node {
    pub fn new(order: usize, is_root: bool, is_leaf: bool) -> Self {
-      let min_child_count: usize = (order as f64 / 2 as f64).ceil() as usize;
+      let min_child_count: usize = order / 2;
 
       return Self{
          keys: Vec::with_capacity(order - 1),
@@ -20,6 +20,21 @@ impl Node {
          is_leaf,
          is_root
       }
+   }
+
+   pub fn with_vectors(
+      keys: Vec<usize>, children: Vec<Node>, order: usize, is_leaf: bool, is_root: bool) -> Node {
+
+      if keys.len() > order - 1 {
+         panic!("There are too many keys");
+      }
+
+      if children.len() > order {
+         panic!("There are too many children");
+      }
+
+      let min_child_count: usize = order / 2;
+      return Node {keys, children, order, is_root, is_leaf, min_child_count}
    }
 
    pub fn add_key(&mut self, key: usize) {
@@ -78,6 +93,10 @@ impl Node {
       }
 
       return Option::None;
+   }
+
+   pub fn split_node(&self) -> Node {
+      unimplemented!();
    }
 
    pub fn get_key(&self, index: usize) -> usize {
