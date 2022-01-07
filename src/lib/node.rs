@@ -1,14 +1,20 @@
 
 pub struct Node {
     keys: Vec<usize>,
+    order: usize,
+    min_child_count: usize,
     children: Vec<Node>
 }
 
 impl Node {
     pub fn new(order: usize) -> Self {
+        let min_child_count: usize = (order as f64 / 2 as f64).ceil() as usize;
+
         return Self{
             keys: Vec::with_capacity(order - 1),
-            children:Vec::with_capacity(order)
+            children:Vec::with_capacity(order),
+            order,
+            min_child_count
         }
     }
 
@@ -75,6 +81,12 @@ impl Node {
     }
 
     pub fn get_child(&self, index: usize) -> &Node { return  &self.children[index]; }
+
+    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
+
+    pub fn has_full_children(&self) -> bool { self.children.len() == self.order }
+
+    pub fn has_min_children(&self) -> bool { self.children.len() == self.min_child_count }
 }
 
 #[cfg(test)]
