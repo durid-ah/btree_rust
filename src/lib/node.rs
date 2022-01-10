@@ -25,15 +25,15 @@ impl Node {
    pub fn with_vectors(
       keys: Vec<usize>, children: Vec<Node>, order: usize, is_leaf: bool, is_root: bool) -> Node {
 
+      let min_child_count: usize = order / 2;
       if keys.len() > order - 1 {
          panic!("There are too many keys");
       }
 
-      if children.len() > order {
+      if children.len() > order || children.len() < min_child_count {
          panic!("There are too many children");
       }
 
-      let min_child_count: usize = order / 2;
       return Node {keys, children, order, is_root, is_leaf, min_child_count}
    }
 
@@ -95,8 +95,31 @@ impl Node {
       return Option::None;
    }
 
-   pub fn split_node(&self) -> Node {
-      unimplemented!();
+   pub fn split_node(&mut self) -> Node {
+      let key_len = self.keys.len();
+      let child_len = self.children.len();
+      let mid_key_idx = (key_len / 2) + 1;
+      let mid_key = self.get_key(mid_key_idx);
+
+      let mut new_parent = Node::new(self.order, self.is_root, false);
+      new_parent.add_key(mid_key);
+
+      let mut right_keys = Vec::with_capacity(self.order);
+      for i in (mid_key + 1)..key_len {
+         right_keys.push(self.keys[i]);
+      }
+
+      for i in (mid_key + 1)..key_len {
+         right_keys.pop();
+      }
+
+      let mut right_children = Vec::with_capacity(self.order);
+      for i in ((mid_key + 1)..child_len).rev() {
+         let node = self.children.pop().unwrap();
+         right_children.push(node);
+      }
+
+      new_parent
    }
 
    pub fn get_key(&self, index: usize) -> usize {
