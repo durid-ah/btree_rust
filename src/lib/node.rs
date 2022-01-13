@@ -1,40 +1,28 @@
+use std::cell::RefCell;
+use std::rc::{Rc, Weak};
+
+pub type NodeRef = Rc<RefCell<Node>>;
+type WeakNodeRef = Weak<RefCell<Node>>;
 
 pub struct Node {
-   pub is_root: bool,
-   pub is_leaf: bool,
+   pub parent : Option<WeakNodeRef>,
+   pub keys: Vec<usize>,
+   pub children: Option<Vec<NodeRef>>,
    order: usize,
    min_child_count: usize,
-   keys: Vec<usize>,
-   children: Vec<Node>
 }
 
 impl Node {
-   pub fn new(order: usize, is_root: bool, is_leaf: bool) -> Self {
+   pub fn new(order: usize) -> Self {
       let min_child_count: usize = order / 2;
 
       return Self{
+         parent: Option::None,
          keys: Vec::with_capacity(order - 1),
-         children:Vec::with_capacity(order),
+         children: Option::None,
          order,
-         min_child_count,
-         is_leaf,
-         is_root
+         min_child_count
       }
-   }
-
-   pub fn with_vectors(
-      keys: Vec<usize>, children: Vec<Node>, order: usize, is_leaf: bool, is_root: bool) -> Node {
-
-      let min_child_count: usize = order / 2;
-      if keys.len() > order - 1 {
-         panic!("There are too many keys");
-      }
-
-      if children.len() > order || children.len() < min_child_count {
-         panic!("There are too many children");
-      }
-
-      return Node {keys, children, order, is_root, is_leaf, min_child_count}
    }
 
    pub fn add_key(&mut self, key: usize) {
@@ -95,49 +83,52 @@ impl Node {
       return Option::None;
    }
 
-   pub fn split_node(&mut self) -> Node {
-      let key_len = self.keys.len();
-      let child_len = self.children.len();
-      let mid_key_idx = (key_len / 2) + 1;
-      let mid_key = self.get_key(mid_key_idx);
+   // pub fn split_node(&mut self) -> (usize, Node, Node) {
+   //    let key_len = self.keys.len();
+   //    let child_len = self.children.len();
+   //    let mid_key_idx = (key_len / 2) + 1;
+   //    let mid_key = self.get_key(mid_key_idx);
+   //
+   //    let mut right_keys = Vec::with_capacity(self.order - 1);
+   //    for i in (mid_key + 1)..key_len {
+   //       let key = self.keys.pop().unwrap();
+   //       right_keys.push(key);
+   //    }
+   //
+   //    let mut right_children = Vec::with_capacity(self.order);
+   //    for i in ((mid_key + 1)..child_len).rev() {
+   //       let node = self.children.pop().unwrap();
+   //       right_children.push(node);
+   //    }
+   //
+   //    let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
+   //
+   //    (mid_key, self)
+   // }
 
-      let mut new_parent = Node::new(self.order, self.is_root, false);
-      new_parent.add_key(mid_key);
+   pub fn get_key(&self, index: usize) -> usize { self.keys[index] }
 
-      let mut right_keys = Vec::with_capacity(self.order);
-      for i in (mid_key + 1)..key_len {
-         right_keys.push(self.keys[i]);
-      }
-
-      for i in (mid_key + 1)..key_len {
-         right_keys.pop();
-      }
-
-      let mut right_children = Vec::with_capacity(self.order);
-      for i in ((mid_key + 1)..child_len).rev() {
-         let node = self.children.pop().unwrap();
-         right_children.push(node);
-      }
-
-      new_parent
-   }
-
-   pub fn get_key(&self, index: usize) -> usize {
-      return self.keys[index];
-   }
-
-   pub fn get_child(&self, index: usize) -> &Node { return  &self.children[index]; }
+   // pub fn get_child(&self, index: usize) -> &Node { return  &self.children[index]; }
 
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
 
-   pub fn has_full_children(&self) -> bool { self.children.len() == self.order }
+   pub fn has_full_children(&self) -> bool { self.child_count() == self.order }
+
+   pub fn child_count(&self) -> usize {
+      match &self.children {
+         None => 0,
+         Some(children) => children.len()
+      }
+   }
+
+   pub fn is_root(&self) -> bool { self.parent.is_none() }
 
    pub fn has_min_children(&self) -> bool {
-      if self.is_root {
-         return self.children.len() == 2;
+      if self.is_root() {
+         return self.child_count() == 2;
       }
 
-      self.children.len() == self.min_child_count
+      self.child_count() == self.min_child_count
    }
 }
 
@@ -153,7 +144,7 @@ mod tests {
       const FOURTH: usize = 18;
       const FIFTH: usize = 25;
 
-      let mut node = Node::new(5, true, true);
+      let mut node = Node::new(5);
 
       node.add_key(FIRST);
       assert_eq!(node.get_key(0), FIRST);
@@ -183,7 +174,7 @@ mod tests {
 
    #[test]
    fn find_key_in_1_element() {
-      let mut node = Node::new(5, true, true);
+      let mut node = Node::new(5);
       node.add_key(5);
 
       let res = node.find_key(5);
@@ -196,7 +187,7 @@ mod tests {
 
    #[test]
    fn find_key_in_2_element() {
-      let mut node = Node::new(5, true, true);
+      let mut node = Node::new(5);
       node.add_key(5);
       node.add_key(7);
 
@@ -220,7 +211,7 @@ mod tests {
 
    #[test]
    fn find_key_in_3_element() {
-      let mut node = Node::new(8, true, true);
+      let mut node = Node::new(8);
       node.add_key(5);
       node.add_key(7);
       node.add_key(9);
@@ -252,7 +243,7 @@ mod tests {
 
    #[test]
    fn find_key_in_4_element() {
-      let mut node = Node::new(8, true, true);
+      let mut node = Node::new(8);
       node.add_key(5);
       node.add_key(7);
       node.add_key(9);
@@ -289,5 +280,12 @@ mod tests {
 
       let res = node.find_key(12);
       assert!(res.is_none());
+   }
+
+   #[test]
+   fn looper() {
+      for i in (1..5).rev() {
+         println!("{:?}", i);
+      }
    }
 }

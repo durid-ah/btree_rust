@@ -1,8 +1,8 @@
-use node::Node;
+use node::{Node, NodeRef};
 
 mod node;
 
 pub struct BTree {
     order: usize,
-    root: Node
+    root: NodeRef
 }
