@@ -24,33 +24,32 @@ impl Node {
          min_child_count
       }
    }
-
-   pub fn add_key(&mut self, key: usize) {
-      // if the value already exists just update the location
-      if let Option::Some(idx) = self.find_key(key) {
-         self.keys[idx] = key;
-         return;
-      }
-
-      // add the new key at the end
-      self.keys.push(key);
-      let mut new_key_idx = self.keys.len() - 1;
-
-      if new_key_idx == 0 { return; }
-
-      // shift the key to the left until the values are in order
-      let mut current_idx = new_key_idx - 1;
-      while self.keys[new_key_idx] < self.keys[current_idx] {
-         let temp = self.keys[current_idx];
-         self.keys[current_idx] = self.keys[new_key_idx];
-         self.keys[new_key_idx] = temp;
-
-         if current_idx > 0 {
-            new_key_idx = current_idx;
-            current_idx -= 1;
-         }
-      }
-   }
+   // pub fn add_key(&mut self, key: usize) {
+   //    // if the value already exists just update the location
+   //    if let Option::Some(idx) = self.find_key(key) {
+   //       self.keys[idx] = key;
+   //       return;
+   //    }
+   //
+   //    // add the new key at the end
+   //    self.keys.push(key);
+   //    let mut new_key_idx = self.keys.len() - 1;
+   //
+   //    if new_key_idx == 0 { return; }
+   //
+   //    // shift the key to the left until the values are in order
+   //    let mut current_idx = new_key_idx - 1;
+   //    while self.keys[new_key_idx] < self.keys[current_idx] {
+   //       let temp = self.keys[current_idx];
+   //       self.keys[current_idx] = self.keys[new_key_idx];
+   //       self.keys[new_key_idx] = temp;
+   //
+   //       if current_idx > 0 {
+   //          new_key_idx = current_idx;
+   //          current_idx -= 1;
+   //       }
+   //    }
+   // }
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
@@ -108,7 +107,12 @@ impl Node {
 
    pub fn get_key(&self, index: usize) -> usize { self.keys[index] }
 
-   // pub fn get_child(&self, index: usize) -> &Node { return  &self.children[index]; }
+   pub fn get_child(&self, index: usize) -> Option<&NodeRef> {
+      match &self.children {
+         None => None,
+         Some(children) => Some(&children[index])
+      }
+   }
 
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
 
@@ -137,45 +141,9 @@ mod tests {
    use crate::node::Node;
 
    #[test]
-   fn adding_method() {
-      const FIRST: usize= 16;
-      const SECOND: usize = 10;
-      const THIRD: usize = 20;
-      const FOURTH: usize = 18;
-      const FIFTH: usize = 25;
-
-      let mut node = Node::new(5);
-
-      node.add_key(FIRST);
-      assert_eq!(node.get_key(0), FIRST);
-
-      node.add_key(SECOND);
-      assert_eq!(node.get_key(0), SECOND);
-      assert_eq!(node.get_key(1), FIRST);
-
-      node.add_key(THIRD);
-      assert_eq!(node.get_key(0), SECOND);
-      assert_eq!(node.get_key(1), FIRST);
-      assert_eq!(node.get_key(2), THIRD);
-
-      node.add_key(FOURTH);
-      assert_eq!(node.get_key(0), SECOND);
-      assert_eq!(node.get_key(1), FIRST);
-      assert_eq!(node.get_key(2), FOURTH);
-      assert_eq!(node.get_key(3), THIRD);
-
-      node.add_key(FIFTH);
-      assert_eq!(node.get_key(0), SECOND);
-      assert_eq!(node.get_key(1), FIRST);
-      assert_eq!(node.get_key(2), FOURTH);
-      assert_eq!(node.get_key(3), THIRD);
-      assert_eq!(node.get_key(4), FIFTH);
-   }
-
-   #[test]
    fn find_key_in_1_element() {
       let mut node = Node::new(5);
-      node.add_key(5);
+      node.keys.push(5);
 
       let res = node.find_key(5);
       assert!(res.is_some());
@@ -188,8 +156,8 @@ mod tests {
    #[test]
    fn find_key_in_2_element() {
       let mut node = Node::new(5);
-      node.add_key(5);
-      node.add_key(7);
+      node.keys.push(5);
+      node.keys.push(7);
 
       let res = node.find_key(5);
       assert!(res.is_some());
@@ -212,9 +180,7 @@ mod tests {
    #[test]
    fn find_key_in_3_element() {
       let mut node = Node::new(8);
-      node.add_key(5);
-      node.add_key(7);
-      node.add_key(9);
+      node.keys = vec![5,7,9];
 
       let res = node.find_key(5);
       assert!(res.is_some());
@@ -244,11 +210,7 @@ mod tests {
    #[test]
    fn find_key_in_4_element() {
       let mut node = Node::new(8);
-      node.add_key(5);
-      node.add_key(7);
-      node.add_key(9);
-      node.add_key(11);
-
+      node.keys = vec![5,7,9,11];
 
       let res = node.find_key(5);
       assert!(res.is_some());
