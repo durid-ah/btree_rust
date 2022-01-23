@@ -84,6 +84,10 @@ impl Node {
 
    /// Find the index where the new key would reside or an error with the
    /// index where it already exists
+   ///
+   /// # Returns
+   /// Ok(i: usize) => where `i` is the index location
+   /// Err((i:usize, err:String)) => a tuple where `i` is the existing location and err is the message
    pub fn find_future_key_index(&self, key: usize) -> Result<usize, (usize, String)> {
       let calculate_mid =
          |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
