@@ -19,6 +19,9 @@ impl BTree {
         }
     }
 
+    /// Add a value into the tree or return an error if the value already exists
+    /// Works by searching each node for a possible location in every node
+    /// until there is no child to insert it in
     pub fn add(&mut self,value: usize) -> Result<(), &str> {
         unsafe {
             let mut node = self.root.as_ptr();
@@ -41,7 +44,6 @@ impl BTree {
                 }
             }
         }
-
 
         return Ok(());
     }

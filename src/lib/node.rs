@@ -25,32 +25,34 @@ impl Node {
       }
    }
 
-   // pub fn add_key(&mut self, key: usize) {
-   //    // if the value already exists just update the location
-   //    if let Option::Some(idx) = self.find_key(key) {
-   //       self.keys[idx] = key;
-   //       return;
-   //    }
-   //
-   //    // add the new key at the end
-   //    self.keys.push(key);
-   //    let mut new_key_idx = self.keys.len() - 1;
-   //
-   //    if new_key_idx == 0 { return; }
-   //
-   //    // shift the key to the left until the values are in order
-   //    let mut current_idx = new_key_idx - 1;
-   //    while self.keys[new_key_idx] < self.keys[current_idx] {
-   //       let temp = self.keys[current_idx];
-   //       self.keys[current_idx] = self.keys[new_key_idx];
-   //       self.keys[new_key_idx] = temp;
-   //
-   //       if current_idx > 0 {
-   //          new_key_idx = current_idx;
-   //          current_idx -= 1;
-   //       }
-   //    }
-   // }
+   ///
+   /// pub fn add_key(&mut self, key: usize) {
+   ///    // if the value already exists just update the location
+   ///    if let Option::Some(idx) = self.find_key(key) {
+   ///       self.keys[idx] = key;
+   ///       return;
+   ///    }
+   ///
+   ///    // add the new key at the end
+   ///    self.keys.push(key);
+   ///    let mut new_key_idx = self.keys.len() - 1;
+   ///
+   ///    if new_key_idx == 0 { return; }
+   ///
+   ///    // shift the key to the left until the values are in order
+   ///    let mut current_idx = new_key_idx - 1;
+   ///    while self.keys[new_key_idx] < self.keys[current_idx] {
+   ///       let temp = self.keys[current_idx];
+   ///       self.keys[current_idx] = self.keys[new_key_idx];
+   ///       self.keys[new_key_idx] = temp;
+   ///
+   ///       if current_idx > 0 {
+   ///          new_key_idx = current_idx;
+   ///          current_idx -= 1;
+   ///       }
+   ///    }
+   /// }
+   ///
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
@@ -127,30 +129,28 @@ impl Node {
       panic!("Unable to find value {}", key)
    }
 
-   fn s(){
-   // pub fn split_node(&mut self) -> (usize, Node, Node) {
-   //    let key_len = self.keys.len();
-   //    let child_len = self.children.len();
-   //    let mid_key_idx = (key_len / 2) + 1;
-   //    let mid_key = self.get_key(mid_key_idx);
-   //
-   //    let mut right_keys = Vec::with_capacity(self.order - 1);
-   //    for i in (mid_key + 1)..key_len {
-   //       let key = self.keys.pop().unwrap();
-   //       right_keys.push(key);
-   //    }
-   //
-   //    let mut right_children = Vec::with_capacity(self.order);
-   //    for i in ((mid_key + 1)..child_len).rev() {
-   //       let node = self.children.pop().unwrap();
-   //       right_children.push(node);
-   //    }
-   //
-   //    let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
-   //
-   //    (mid_key, self)
-   // }
-   }
+   /// pub fn split_node(&mut self) -> (usize, Node, Node) {
+   ///    let key_len = self.keys.len();
+   ///    let child_len = self.children.len();
+   ///    let mid_key_idx = (key_len / 2) + 1;
+   ///    let mid_key = self.get_key(mid_key_idx);
+   ///
+   ///    let mut right_keys = Vec::with_capacity(self.order - 1);
+   ///    for i in (mid_key + 1)..key_len {
+   ///       let key = self.keys.pop().unwrap();
+   ///       right_keys.push(key);
+   ///    }
+   ///
+   ///    let mut right_children = Vec::with_capacity(self.order);
+   ///    for i in ((mid_key + 1)..child_len).rev() {
+   ///       let node = self.children.pop().unwrap();
+   ///       right_children.push(node);
+   ///    }
+   ///
+   ///    let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
+   ///
+   ///    (mid_key, self)
+   /// }
 
    pub fn get_key(&self, index: usize) -> usize { self.keys[index] }
 
@@ -164,7 +164,6 @@ impl Node {
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
 
    pub fn is_root(&self) -> bool { self.parent.is_none() }
-
 }
 
 #[cfg(test)]
