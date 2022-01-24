@@ -7,7 +7,9 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 pub struct Node {
    pub parent : Option<WeakNodeRef>,
    pub keys: Vec<usize>,
-   pub children: Option<Vec<NodeRef>>,
+   pub child_count: usize,
+
+   children: Vec<Option<NodeRef>>,
    order: usize,
    min_child_count: usize,
 }
@@ -19,40 +21,33 @@ impl Node {
       return Self {
          parent: Option::None,
          keys: Vec::with_capacity(order - 1),
-         children: Option::None,
+         children: vec![Option::None; order],
+         child_count: 0,
          order,
          min_child_count
       }
    }
 
-   ///
-   /// pub fn add_key(&mut self, key: usize) {
-   ///    // if the value already exists just update the location
-   ///    if let Option::Some(idx) = self.find_key(key) {
-   ///       self.keys[idx] = key;
-   ///       return;
-   ///    }
-   ///
-   ///    // add the new key at the end
-   ///    self.keys.push(key);
-   ///    let mut new_key_idx = self.keys.len() - 1;
-   ///
-   ///    if new_key_idx == 0 { return; }
-   ///
-   ///    // shift the key to the left until the values are in order
-   ///    let mut current_idx = new_key_idx - 1;
-   ///    while self.keys[new_key_idx] < self.keys[current_idx] {
-   ///       let temp = self.keys[current_idx];
-   ///       self.keys[current_idx] = self.keys[new_key_idx];
-   ///       self.keys[new_key_idx] = temp;
-   ///
-   ///       if current_idx > 0 {
-   ///          new_key_idx = current_idx;
-   ///          current_idx -= 1;
-   ///       }
-   ///    }
-   /// }
-   ///
+   pub fn add_key(&mut self, key: usize) {
+      // add the new key at the end
+      self.keys.push(key);
+      let mut new_key_idx = self.keys.len() - 1;
+
+      if new_key_idx == 0 { return; }
+
+      // shift the key to the left until the values are in order
+      let mut current_idx = new_key_idx - 1;
+      while self.keys[new_key_idx] < self.keys[current_idx] {
+         let temp = self.keys[current_idx];
+         self.keys[current_idx] = self.keys[new_key_idx];
+         self.keys[new_key_idx] = temp;
+
+         if current_idx > 0 {
+            new_key_idx = current_idx;
+            current_idx -= 1;
+         }
+      }
+   }
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
@@ -152,12 +147,10 @@ impl Node {
    ///    (mid_key, self)
    /// }
 
-   pub fn get_key(&self, index: usize) -> usize { self.keys[index] }
-
    pub fn get_child(&self, index: usize) -> Option<&NodeRef> {
-      match &self.children {
+      match &self.children[index] {
          None => None,
-         Some(children) => Some(&children[index])
+         Some(child) => Some(&child)
       }
    }
 
