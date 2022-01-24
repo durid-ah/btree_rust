@@ -4,6 +4,8 @@ use node::{Node, NodeRef};
 
 mod node;
 
+const ALREADY_EXISTS_ERROR: &str = "Value already exists";
+
 pub struct BTree {
     order: usize,
     root: NodeRef
@@ -17,16 +19,30 @@ impl BTree {
         }
     }
 
-    pub fn add(value: usize) {
+    pub fn add(&mut self,value: usize) -> Result<(), &str> {
+        unsafe {
+            let mut node = self.root.as_ptr();
+            let mut res = (*node).find_future_key_index(value);
 
+            if res.is_err() {
+                return Err(ALREADY_EXISTS_ERROR);
+            }
+
+            loop {
+                let node_option = (*node).get_child(res.unwrap());
+                if node_option.is_none() {
+                    break;
+                }
+
+                node = node_option.unwrap().as_ptr();
+                res = (*node).find_future_key_index(value);
+                if res.is_err() {
+                    return Err(ALREADY_EXISTS_ERROR);
+                }
+            }
+        }
+
+
+        return Ok(());
     }
 }
-
-/// Insert value
-/// 1. Check if it fits in the first node (binary search style)
-/// 2. Check if it fits on the child between the two keys (lager than the largest key?)
-/// 3. If it
-fn hello() {
-    return;
-}
-

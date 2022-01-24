@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
 
 pub type NodeRef = Rc<RefCell<Node>>;
@@ -163,24 +163,8 @@ impl Node {
 
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
 
-   pub fn has_full_children(&self) -> bool { self.child_count() == self.order }
-
-   pub fn child_count(&self) -> usize {
-      match &self.children {
-         None => 0,
-         Some(children) => children.len()
-      }
-   }
-
    pub fn is_root(&self) -> bool { self.parent.is_none() }
 
-   pub fn has_min_children(&self) -> bool {
-      if self.is_root() {
-         return self.child_count() == 2;
-      }
-
-      self.child_count() == self.min_child_count
-   }
 }
 
 #[cfg(test)]
