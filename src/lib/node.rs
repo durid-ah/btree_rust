@@ -155,17 +155,25 @@ impl Node {
       return Some(&self.children[index]);
    }
 
-   pub fn get_min_child(&self) -> Option<&NodeRef> {
-      return self.get_child(0);
-   }
-
-   pub fn get_max_child(&self) -> Option<&NodeRef> {
-      if self.children.len() == 0 {
+   pub fn get_key(&self, index: usize) -> Option<usize> {
+      if self.keys.len() == 0 {
          return Option::None;
       }
 
-      let max_index = self.children.len() - 1;
-      return self.get_child(max_index);
+      Option::Some(self.keys[index])
+   }
+
+   pub fn get_min_key(&self) -> Option<usize> {
+      return self.get_key(0);
+   }
+
+   pub fn get_max_key(&self) -> Option<usize> {
+      if self.keys.len() == 0 {
+         return Option::None;
+      }
+
+      let max_index = self.keys.len() - 1;
+      self.get_key(max_index)
    }
 
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
