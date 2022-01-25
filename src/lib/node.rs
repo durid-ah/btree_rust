@@ -163,9 +163,7 @@ impl Node {
       Option::Some(self.keys[index])
    }
 
-   pub fn get_min_key(&self) -> Option<usize> {
-      return self.get_key(0);
-   }
+   pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
 
    pub fn get_max_key(&self) -> Option<usize> {
       if self.keys.len() == 0 {
