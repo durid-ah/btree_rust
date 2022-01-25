@@ -9,7 +9,7 @@ pub struct Node {
    pub keys: Vec<usize>,
    pub child_count: usize,
 
-   children: Vec<Option<NodeRef>>,
+   children: Vec<NodeRef>,
    order: usize,
    min_child_count: usize,
 }
@@ -21,7 +21,7 @@ impl Node {
       return Self {
          parent: Option::None,
          keys: Vec::with_capacity(order - 1),
-         children: vec![Option::None; order],
+         children: Vec::with_capacity(order),
          child_count: 0,
          order,
          min_child_count
@@ -148,10 +148,24 @@ impl Node {
    /// }
 
    pub fn get_child(&self, index: usize) -> Option<&NodeRef> {
-      match &self.children[index] {
-         None => None,
-         Some(child) => Some(&child)
+      if self.children.len() == 0{
+         return Option::None;
       }
+
+      return Some(&self.children[index]);
+   }
+
+   pub fn get_min_child(&self) -> Option<&NodeRef> {
+      return self.get_child(0);
+   }
+
+   pub fn get_max_child(&self) -> Option<&NodeRef> {
+      if self.children.len() == 0 {
+         return Option::None;
+      }
+
+      let max_index = self.children.len() - 1;
+      return self.get_child(max_index);
    }
 
    pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
