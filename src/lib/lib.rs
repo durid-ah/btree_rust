@@ -43,8 +43,22 @@ impl BTree {
                     return Err(ALREADY_EXISTS_ERROR);
                 }
             }
+
+            // TODO: Attempt to insert in the res location
+            // TODO: New Method for the splitting process
+            // TODO: Check for splitting
+            // TODO: Add split into parent
+            // TODO: Check if parent needs to split
         }
 
         return Ok(());
     }
+
+    // TODO: Main Split Method:
+    // TODO: Check for split
+    // TODO: if not return
+    // TODO: Insert key and children into parent
+    // TODO: Loop again
+    // TODO: See Node for split method
+
 }

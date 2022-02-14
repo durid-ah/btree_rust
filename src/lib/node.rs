@@ -28,6 +28,7 @@ impl Node {
       }
    }
 
+   // TODO: Should we use the found index?
    pub fn add_key(&mut self, key: usize) {
       // add the new key at the end
       self.keys.push(key);
@@ -48,6 +49,9 @@ impl Node {
          }
       }
    }
+
+   // TODO: Split Node
+   // TODO: Return parent, left child and right child
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
