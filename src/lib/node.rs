@@ -56,7 +56,7 @@ impl Node {
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
       let calculate_mid =
-         |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
+           |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
 
       if self.keys.len() == 0 {
          return Option::None;
@@ -90,6 +90,7 @@ impl Node {
    /// Ok(i: usize) => where `i` is the index location
    /// Err((i:usize, err:String)) => a tuple where `i` is the existing location and err is the message
    pub fn find_future_key_index(&self, key: usize) -> Result<usize, (usize, String)> {
+      // TODO: break into separate method
       let calculate_mid =
          |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
 
@@ -151,12 +152,12 @@ impl Node {
    ///    (mid_key, self)
    /// }
 
-   pub fn get_child(&self, index: usize) -> Option<&NodeRef> {
+   pub fn get_child(&self, index: &usize) -> Option<&NodeRef> {
       if self.children.len() == 0{
          return Option::None;
       }
 
-      return Some(&self.children[index]);
+      return Some(&self.children[*index]);
    }
 
    pub fn get_key(&self, index: usize) -> Option<usize> {

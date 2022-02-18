@@ -23,16 +23,27 @@ impl BTree {
     /// Works by searching each node for a possible location in every node
     /// until there is no child to insert it in
     pub fn add(&mut self,value: usize) -> Result<(), &str> {
-        unsafe {
-            let mut node = self.root.as_ptr();
-            let mut res = (*node).find_future_key_index(value);
+        let mut node = self.find_insert_node(value);
 
-            if res.is_err() {
-                return Err(ALREADY_EXISTS_ERROR);
-            }
+        // TODO: Attempt to insert in the res location
+        // TODO: New Method for the splitting process
+        // TODO: Check for splitting
+        // TODO: Add split into parent
+        // TODO: Check if parent needs to split
+
+        return Ok(());
+    }
+
+    fn find_insert_node(&mut self, value: usize) -> Result<usize, &str> {
+        let mut node = self.root.as_ptr();
+        let mut res;
+        unsafe {
+            res = (*node).find_future_key_index(value);
+
+            if res.is_err() { return Err(ALREADY_EXISTS_ERROR); }
 
             loop {
-                let node_option = (*node).get_child(res.unwrap());
+                let node_option = (*node).get_child(res.as_ref().unwrap());
                 if node_option.is_none() {
                     break;
                 }
@@ -43,15 +54,9 @@ impl BTree {
                     return Err(ALREADY_EXISTS_ERROR);
                 }
             }
-
-            // TODO: Attempt to insert in the res location
-            // TODO: New Method for the splitting process
-            // TODO: Check for splitting
-            // TODO: Add split into parent
-            // TODO: Check if parent needs to split
         }
 
-        return Ok(());
+        return Ok(res.unwrap())
     }
 
     // TODO: Main Split Method:
@@ -60,5 +65,15 @@ impl BTree {
     // TODO: Insert key and children into parent
     // TODO: Loop again
     // TODO: See Node for split method
+}
 
+#[cfg(test)]
+mod tests {
+    use crate::BTree;
+
+    #[test]
+    fn test_find_node() {
+        let mut tree = BTree::new(5);
+        tree.find_insert_node(2);
+    }
 }
