@@ -35,7 +35,7 @@ impl BTree {
     }
 
     fn find_insert_node(&mut self, value: usize) -> Result<usize, &str> {
-        let mut node = self.root.as_ptr();
+        let mut node = self.root.as_ptr(); // TODO: change to get &NodeRef
         let mut res;
         unsafe {
             res = (*node).find_future_key_index(value);
@@ -56,6 +56,7 @@ impl BTree {
             }
         }
 
+        // TODO: Return &NodeRef instead
         return Ok(res.unwrap())
     }
 
