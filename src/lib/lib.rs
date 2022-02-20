@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
 use node::{Node, NodeRef};
@@ -37,23 +38,18 @@ impl BTree {
       return Ok(());
    }
 
-   fn find_insert_node(&mut self, value: usize) -> Result<&NodeRef, &str> {
-      let mut node = &self.root;
+   fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, &str> {
+      let mut node: NodeRef = Rc::clone(&self.root);
 
-      unsafe {
-         loop {
-            let node_ptr = node.as_ptr();
-            let res = (*node_ptr).find_future_key_index(value);
+      loop {
+         let res = (*node).borrow_mut().find_future_key_index(value);
+         if res.is_err() { return Err(ALREADY_EXISTS_ERROR); }
 
-            if res.is_err() { return Err(ALREADY_EXISTS_ERROR); }
-
-            let child_idx = res.as_ref().unwrap();
-            let node_option = (*node_ptr).get_child(child_idx);
-
-            match node_option {
-               None => break,
-               Some(child) => node = child
-            }
+         let child_idx = res.unwrap();
+         let node_option = (*node).borrow_mut().get_child(child_idx);
+         match node_option {
+            None => break,
+            Some(child) => node = child
          }
       }
 
@@ -71,6 +67,10 @@ impl BTree {
 #[cfg(test)]
 mod tests {
    use crate::BTree;
+
+   fn build_tree() {
+      // BTree {}
+   }
 
    #[test]
    fn test_find_node() {

@@ -151,12 +151,12 @@ impl Node {
    ///    (mid_key, self)
    /// }
 
-   pub fn get_child(&self, index: &usize) -> Option<&NodeRef> {
+   pub fn get_child(&self, index: usize) -> Option<NodeRef> {
       if self.children.len() == 0{
          return Option::None;
       }
 
-      return Some(&self.children[*index]);
+      return Some(Rc::clone(&self.children[index]));
    }
 
    pub fn get_key(&self, index: usize) -> Option<usize> {
