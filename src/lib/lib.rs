@@ -7,74 +7,74 @@ mod node;
 const ALREADY_EXISTS_ERROR: &str = "Value already exists";
 
 pub struct BTree {
-    order: usize,
-    root: NodeRef
+   order: usize,
+   root: NodeRef
 }
 
 impl BTree {
-    pub fn new(order: usize) -> Self {
-        return Self {
-            order,
-            root: Rc::new(RefCell::new(Node::new(order)))
-        }
-    }
+   pub fn new(order: usize) -> Self {
+      return Self {
+         order,
+         root: Rc::new(RefCell::new(Node::new(order)))
+      }
+   }
 
-    /// Add a value into the tree or return an error if the value already exists
-    /// Works by searching each node for a possible location in every node
-    /// until there is no child to insert it in
-    pub fn add(&mut self,value: usize) -> Result<(), &str> {
-        let mut node = self.find_insert_node(value);
+   /// Add a value into the tree or return an error if the value already exists
+   /// Works by searching each node for a possible location in every node
+   /// until there is no child to insert it in
+   pub fn add(&mut self,value: usize) -> Result<(), &str> {
+      let mut node = match self.find_insert_node(value) {
+         Ok(val) => val,
+         Err(err) => return Err(err)
+      };
 
-        // TODO: Attempt to insert in the res location
-        // TODO: New Method for the splitting process
-        // TODO: Check for splitting
-        // TODO: Add split into parent
-        // TODO: Check if parent needs to split
+      // TODO: Attempt to insert in the res location
+      // TODO: New Method for the splitting process
+      // TODO: Check for splitting
+      // TODO: Add split into parent
+      // TODO: Check if parent needs to split
 
-        return Ok(());
-    }
+      return Ok(());
+   }
 
-    fn find_insert_node(&mut self, value: usize) -> Result<usize, &str> {
-        let mut node = self.root.as_ptr(); // TODO: change to get &NodeRef
-        let mut res;
-        unsafe {
-            res = (*node).find_future_key_index(value);
+   fn find_insert_node(&mut self, value: usize) -> Result<&NodeRef, &str> {
+      let mut node = &self.root;
+
+      unsafe {
+         loop {
+            let node_ptr = node.as_ptr();
+            let res = (*node_ptr).find_future_key_index(value);
 
             if res.is_err() { return Err(ALREADY_EXISTS_ERROR); }
 
-            loop {
-                let node_option = (*node).get_child(res.as_ref().unwrap());
-                if node_option.is_none() {
-                    break;
-                }
+            let child_idx = res.as_ref().unwrap();
+            let node_option = (*node_ptr).get_child(child_idx);
 
-                node = node_option.unwrap().as_ptr();
-                res = (*node).find_future_key_index(value);
-                if res.is_err() {
-                    return Err(ALREADY_EXISTS_ERROR);
-                }
+            match node_option {
+               None => break,
+               Some(child) => node = child
             }
-        }
+         }
+      }
 
-        // TODO: Return &NodeRef instead
-        return Ok(res.unwrap())
-    }
+      return Ok(node);
+   }
 
-    // TODO: Main Split Method:
-    // TODO: Check for split
-    // TODO: if not return
-    // TODO: Insert key and children into parent
-    // TODO: Loop again
-    // TODO: See Node for split method
+   // TODO: Main Split Method:
+   // TODO: Check for split
+   // TODO: if not return
+   // TODO: Insert key and children into parent
+   // TODO: Loop again
+   // TODO: See Node for split method
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::BTree;
+   use crate::BTree;
 
-    #[test]
-    fn test_find_node() {
-        let mut tree = BTree::new(5);
-        tree.find_insert_node(2);
-    }
+   #[test]
+   fn test_find_node() {
+      let mut tree = BTree::new(5);
+      tree.find_insert_node(2);
+   }
 }

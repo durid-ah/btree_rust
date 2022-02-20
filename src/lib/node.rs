@@ -28,7 +28,6 @@ impl Node {
       }
    }
 
-   // TODO: Should we use the found index?
    pub fn add_key(&mut self, key: usize) {
       // add the new key at the end
       self.keys.push(key);
