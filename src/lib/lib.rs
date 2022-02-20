@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::rc::Rc;
 use node::{Node, NodeRef};
@@ -66,14 +65,19 @@ impl BTree {
 
 #[cfg(test)]
 mod tests {
+   use std::rc::Rc;
    use crate::BTree;
+   use super::*;
 
-   fn build_tree() {
-      // BTree {}
+   fn build_tree() -> BTree {
+      BTree {order: 5, root: Rc::new(RefCell::new(Node::new(5)))}
    }
 
    #[test]
    fn test_find_node() {
+      // TODO: Build a simple three node tree
+      // TODO: Test out finding in the left node and right node
+      // TODO: Figure out how to check reference between two NodeRefs
       let mut tree = BTree::new(5);
       tree.find_insert_node(2);
    }
