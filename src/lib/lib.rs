@@ -88,9 +88,9 @@ mod tests {
 
       let root = Rc::new(
          RefCell::new(
-            Node::new(5)));
+            Node::new(3)));
 
-      root.borrow_mut().add_key(3);
+      root.borrow_mut().add_key(5);
 
       root.borrow_mut().children.push(left_child);
       root.borrow_mut().children.push(right_child);
@@ -104,6 +104,13 @@ mod tests {
       let left_node_test = tree.find_insert_node(2).unwrap();
       let right_node_test = tree.find_insert_node(8).unwrap();
 
+      assert_eq!(left_node_test.borrow_mut().keys, vec![1, 3]);
+      assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
+
+      let left_node_test = tree.find_insert_node(4).unwrap();
+      let right_node_test = tree.find_insert_node(6).unwrap();
+
+      println!("{:?}", tree.root);
       assert_eq!(left_node_test.borrow_mut().keys, vec![1, 3]);
       assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
 
