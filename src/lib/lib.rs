@@ -7,7 +7,6 @@ mod node;
 const ALREADY_EXISTS_ERROR: &str = "Value already exists";
 
 pub struct BTree {
-   order: usize,
    root: NodeRef,
    child_min: usize,
    key_min: usize
@@ -19,7 +18,6 @@ impl BTree {
       let key_min = child_min - 1;
 
       return Self {
-         order,
          root: Rc::new(RefCell::new(Node::new(order))),
          child_min,
          key_min
@@ -68,9 +66,8 @@ impl BTree {
 
    fn split_if_full(&self, node: &mut NodeRef) {
       let node_ref = node.borrow_mut();
-      let key_max = self.order - 1;
 
-      if node_ref.key_count() <= key_max { return; }
+      if node_ref.is_key_overflowing() { return; }
 
       // TODO: Execute split on node
       // TODO: Insert key and children into parent
@@ -110,7 +107,7 @@ mod tests {
       root.borrow_mut().children.push(left_child);
       root.borrow_mut().children.push(right_child);
 
-      BTree {order: 3, root, child_min: 0, key_min: 0}
+      BTree { root, child_min: 0, key_min: 0}
    }
 
    #[test]

@@ -6,11 +6,11 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 
 #[derive(Debug)]
 pub struct Node {
-   pub parent : Option<WeakNodeRef>,
+   parent : Option<WeakNodeRef>,
    pub keys: Vec<usize>,
 
-   pub child_count: usize,
    pub children: Vec<NodeRef>,
+   order: usize
 }
 
 impl Node {
@@ -20,7 +20,7 @@ impl Node {
          parent: Option::None,
          keys: Vec::with_capacity(order - 1),
          children: Vec::with_capacity(order),
-         child_count: 0,
+         order
       }
    }
 
@@ -123,31 +123,29 @@ impl Node {
 
    // TODO: Split Node
    // TODO: Return parent, left child and right child
+   pub fn split_node(&mut self) { //-> (usize, Node, Node) {
+      let key_len = self.keys.len();
+      let child_len = self.children.len();
+      let mid_key_idx = (key_len / 2) + 1;
+      let mid_key = self.keys[mid_key_idx];
 
-   /// pub fn split_node(&mut self) -> (usize, Node, Node) {
-   ///    let key_len = self.keys.len();
-   ///    let child_len = self.children.len();
-   ///    let mid_key_idx = (key_len / 2) + 1;
-   ///    let mid_key = self.get_key(mid_key_idx);
-   ///
-   ///    let mut right_keys = Vec::with_capacity(self.order - 1);
-   ///    for i in (mid_key + 1)..key_len {
-   ///       let key = self.keys.pop().unwrap();
-   ///       right_keys.push(key);
-   ///    }
-   ///
-   ///    let mut right_children = Vec::with_capacity(self.order);
-   ///    for i in ((mid_key + 1)..child_len).rev() {
-   ///       let node = self.children.pop().unwrap();
-   ///       right_children.push(node);
-   ///    }
-   ///
-   ///    let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
-   ///
-   ///    (mid_key, self)
-   /// }
-   fn no_func() {
+      let mut right_keys = Vec::with_capacity(self.order - 1);
+      for _ in (mid_key + 1)..key_len {
+         let key = self.keys.pop().unwrap();
+         right_keys.push(key);
+      }
 
+      let mut right_children = Vec::with_capacity(self.order);
+      for _ in ((mid_key + 1)..child_len).rev() {
+         let node = self.children.pop().unwrap();
+         right_children.push(node);
+      }
+
+      // FIXME: Missing with_vectors constructor
+      // TODO: Change to normal constructor?
+      // let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
+
+      //(mid_key, self)
    }
 
    /// Return a pointer to the child node at a given index
@@ -159,28 +157,29 @@ impl Node {
       return Some(Rc::clone(&self.children[index]));
    }
 
-   pub fn get_key(&self, index: usize) -> Option<usize> {
-      if self.keys.len() == 0 {
-         return Option::None;
-      }
+   /// Shows if the key container is over capacity and ready for a split
+   pub fn is_key_overflowing(&self) -> bool { self.keys.len() > self.order - 1 }
 
-      Option::Some(self.keys[index])
-   }
-
-   pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
-
-   pub fn get_max_key(&self) -> Option<usize> {
-      if self.keys.len() == 0 {
-         return Option::None;
-      }
-
-      let max_index = self.keys.len() - 1;
-      self.get_key(max_index)
-   }
-
-   pub fn is_root(&self) -> bool { self.parent.is_none() }
-
-   pub fn key_count(&self) -> usize { self.keys.len() }
+   // pub fn get_key(&self, index: usize) -> Option<usize> {
+   //    if self.keys.len() == 0 {
+   //       return Option::None;
+   //    }
+   //
+   //    Option::Some(self.keys[index])
+   // }
+   //
+   // pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
+   //
+   // pub fn get_max_key(&self) -> Option<usize> {
+   //    if self.keys.len() == 0 {
+   //       return Option::None;
+   //    }
+   //
+   //    let max_index = self.keys.len() - 1;
+   //    self.get_key(max_index)
+   // }
+   //
+   // pub fn is_root(&self) -> bool { self.parent.is_none() }
 }
 
 #[cfg(test)]
