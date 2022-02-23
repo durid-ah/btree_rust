@@ -37,12 +37,6 @@ impl BTree {
 
       node.borrow_mut().add_key(value);
 
-      // TODO: Attempt to insert in the res location
-      // TODO: New Method for the splitting process
-      // TODO: Check for splitting
-      // TODO: Add split into parent
-      // TODO: Check if parent needs to split
-
       return Ok(());
    }
 
@@ -71,18 +65,16 @@ impl BTree {
       let node_ref = node.borrow_mut();
       let key_max = self.order - 1;
 
-      if node_ref.key_count() < key_max { return; }
+      if node_ref.key_count() <= key_max { return; }
 
-
-
+      // TODO: Execute split on node
+      // TODO: Insert key and children into parent
+      // TODO: The split nodes have to be separate for insertion into parent
+      // TODO: Loop again
+      // TODO: See Node for split method
    }
 
-   // TODO: Main Split Method:
-   // TODO: Check for split
-   // TODO: if not return
-   // TODO: Insert key and children into parent
-   // TODO: Loop again
-   // TODO: See Node for split method
+
 }
 
 #[cfg(test)]
