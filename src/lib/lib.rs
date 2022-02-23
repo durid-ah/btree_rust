@@ -8,19 +8,13 @@ const ALREADY_EXISTS_ERROR: &str = "Value already exists";
 
 pub struct BTree {
    root: NodeRef,
-   child_min: usize,
-   key_min: usize
 }
 
 impl BTree {
    pub fn new(order: usize) -> Self {
-      let child_min = (order as f64 / 2.0).ceil() as usize;
-      let key_min = child_min - 1;
 
       return Self {
          root: Rc::new(RefCell::new(Node::new(order))),
-         child_min,
-         key_min
       }
    }
 
@@ -107,7 +101,7 @@ mod tests {
       root.borrow_mut().children.push(left_child);
       root.borrow_mut().children.push(right_child);
 
-      BTree { root, child_min: 0, key_min: 0}
+      BTree { root }
    }
 
    #[test]
