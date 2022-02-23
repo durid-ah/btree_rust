@@ -8,14 +8,21 @@ const ALREADY_EXISTS_ERROR: &str = "Value already exists";
 
 pub struct BTree {
    order: usize,
-   root: NodeRef
+   root: NodeRef,
+   child_min: usize,
+   key_min: usize
 }
 
 impl BTree {
    pub fn new(order: usize) -> Self {
+      let child_min = (order as f64 / 2.0).ceil() as usize;
+      let key_min = child_min - 1;
+
       return Self {
          order,
-         root: Rc::new(RefCell::new(Node::new(order)))
+         root: Rc::new(RefCell::new(Node::new(order))),
+         child_min,
+         key_min
       }
    }
 
@@ -28,6 +35,8 @@ impl BTree {
          Err(err) => return Err(err)
       };
 
+      node.borrow_mut().add_key(value);
+
       // TODO: Attempt to insert in the res location
       // TODO: New Method for the splitting process
       // TODO: Check for splitting
@@ -37,6 +46,7 @@ impl BTree {
       return Ok(());
    }
 
+   /// Get the node were you would insert the desired value
    fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, &str> {
       let mut node: NodeRef = Rc::clone(&self.root);
 
@@ -57,6 +67,16 @@ impl BTree {
       return Ok(node);
    }
 
+   fn split_if_full(&mut self, node: &mut NodeRef) {
+      let node_ref = node.borrow_mut();
+      let key_max = self.order - 1;
+
+      if node_ref.key_count() < key_max { return; }
+
+
+
+   }
+
    // TODO: Main Split Method:
    // TODO: Check for split
    // TODO: if not return
@@ -72,21 +92,21 @@ mod tests {
    use super::*;
 
    fn build_tree() -> BTree {
-      let left_child = Rc::new(
+      let mut left_child = Rc::new(
          RefCell::new(
             Node::new(3)));
 
       left_child.borrow_mut().add_key(1);
       left_child.borrow_mut().add_key(3);
 
-      let right_child = Rc::new(
+      let mut right_child = Rc::new(
          RefCell::new(
             Node::new(3)));
 
       right_child.borrow_mut().add_key(7);
       right_child.borrow_mut().add_key(9);
 
-      let root = Rc::new(
+      let mut root = Rc::new(
          RefCell::new(
             Node::new(3)));
 
@@ -95,22 +115,21 @@ mod tests {
       root.borrow_mut().children.push(left_child);
       root.borrow_mut().children.push(right_child);
 
-      BTree {order: 3, root}
+      BTree {order: 3, root, child_min: 0, key_min: 0}
    }
 
    #[test]
    fn test_find_node() {
       let mut tree = build_tree();
-      let left_node_test = tree.find_insert_node(2).unwrap();
-      let right_node_test = tree.find_insert_node(8).unwrap();
+      let mut left_node_test = tree.find_insert_node(2).unwrap();
+      let mut right_node_test = tree.find_insert_node(8).unwrap();
 
       assert_eq!(left_node_test.borrow_mut().keys, vec![1, 3]);
       assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
 
-      let left_node_test = tree.find_insert_node(4).unwrap();
-      let right_node_test = tree.find_insert_node(6).unwrap();
+      let mut left_node_test = tree.find_insert_node(4).unwrap();
+      let mut right_node_test = tree.find_insert_node(6).unwrap();
 
-      println!("{:?}", tree.root);
       assert_eq!(left_node_test.borrow_mut().keys, vec![1, 3]);
       assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
 

@@ -8,24 +8,19 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 pub struct Node {
    pub parent : Option<WeakNodeRef>,
    pub keys: Vec<usize>,
-   pub child_count: usize,
 
+   pub child_count: usize,
    pub children: Vec<NodeRef>,
-   order: usize,
-   min_child_count: usize,
 }
 
 impl Node {
    pub fn new(order: usize) -> Self {
-      let min_child_count: usize = order / 2;
 
       return Self {
          parent: Option::None,
          keys: Vec::with_capacity(order - 1),
          children: Vec::with_capacity(order),
          child_count: 0,
-         order,
-         min_child_count
       }
    }
 
@@ -49,9 +44,6 @@ impl Node {
          }
       }
    }
-
-   // TODO: Split Node
-   // TODO: Return parent, left child and right child
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
@@ -129,6 +121,9 @@ impl Node {
       panic!("Unable to find value {}", key)
    }
 
+   // TODO: Split Node
+   // TODO: Return parent, left child and right child
+
    /// pub fn split_node(&mut self) -> (usize, Node, Node) {
    ///    let key_len = self.keys.len();
    ///    let child_len = self.children.len();
@@ -183,9 +178,9 @@ impl Node {
       self.get_key(max_index)
    }
 
-   pub fn has_full_keys(&self) -> bool { self.keys.len() ==  self.order - 1 }
-
    pub fn is_root(&self) -> bool { self.parent.is_none() }
+
+   pub fn key_count(&self) -> usize { self.keys.len() }
 }
 
 #[cfg(test)]
