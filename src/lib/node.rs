@@ -4,7 +4,7 @@ use std::rc::{Rc, Weak};
 pub type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
-// utilities:
+// Utilities:
 fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + start }
 
 #[derive(Debug)]
@@ -119,7 +119,6 @@ impl Node {
    }
 
    // TODO: Split Node
-   // TODO: Return parent, left child and right child
    pub fn split_node(&mut self) { //-> (usize, Node, Node) {
       let key_len = self.keys.len();
       let child_len = self.children.len();
@@ -127,21 +126,29 @@ impl Node {
       let mid_key = self.keys[mid_key_idx];
 
       let mut right_keys = Vec::with_capacity(self.order - 1);
+
+      // TODO: change to a Option::None check?
       for _ in (mid_key + 1)..key_len {
          let key = self.keys.pop().unwrap();
-         right_keys.push(key);
+         right_keys.push(key); // TODO: Sorting?
       }
 
       let mut right_children = Vec::with_capacity(self.order);
+
+      // TODO: change to a Option::None check?
       for _ in ((mid_key + 1)..child_len).rev() {
          let node = self.children.pop().unwrap();
-         right_children.push(node);
+         right_children.push(node); // TODO: Sorting?
       }
 
       // FIXME: Missing with_vectors constructor
       // TODO: Change to normal constructor?
       // let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
 
+      // TODO: Connect to parent node? Do in BTree struct?
+
+      // TODO: Return parent, left child and right child?
+      // TODO: Return parent with children already inserted?
       //(mid_key, self)
    }
 
