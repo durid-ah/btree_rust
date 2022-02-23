@@ -29,7 +29,6 @@ impl BTree {
       }
 
       let mut node = node_res.unwrap();
-
       node.borrow_mut().add_key(value);
 
       self.split_if_full(&mut node);

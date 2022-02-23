@@ -4,6 +4,9 @@ use std::rc::{Rc, Weak};
 pub type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
+// utilities:
+fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + start }
+
 #[derive(Debug)]
 pub struct Node {
    parent : Option<WeakNodeRef>,
@@ -47,9 +50,6 @@ impl Node {
 
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
-      let calculate_mid =
-           |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
-
       if self.keys.len() == 0 {
          return Option::None;
       }
@@ -75,6 +75,7 @@ impl Node {
       return Option::None;
    }
 
+   // TODO: Review in cleanup phase
    /// Find the index where the new key would reside or an error with the
    /// index where it already exists
    ///
@@ -82,10 +83,6 @@ impl Node {
    /// Ok(i: usize) => where `i` is the index location
    /// Err((i:usize, err:String)) => a tuple where `i` is the existing location and err is the message
    pub fn find_future_key_index(&self, key: usize) -> Result<usize, (usize, String)> {
-      // TODO: break into separate method
-      let calculate_mid =
-         |start: isize, end: isize| -> isize { ((end - start) / 2) + start };
-
       if self.keys.len() == 0 {
          return Ok(0);
       }
@@ -160,26 +157,28 @@ impl Node {
    /// Shows if the key container is over capacity and ready for a split
    pub fn is_key_overflowing(&self) -> bool { self.keys.len() > self.order - 1 }
 
-   // pub fn get_key(&self, index: usize) -> Option<usize> {
-   //    if self.keys.len() == 0 {
-   //       return Option::None;
-   //    }
-   //
-   //    Option::Some(self.keys[index])
-   // }
-   //
-   // pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
-   //
-   // pub fn get_max_key(&self) -> Option<usize> {
-   //    if self.keys.len() == 0 {
-   //       return Option::None;
-   //    }
-   //
-   //    let max_index = self.keys.len() - 1;
-   //    self.get_key(max_index)
-   // }
-   //
-   // pub fn is_root(&self) -> bool { self.parent.is_none() }
+   ///
+   /// pub fn get_key(&self, index: usize) -> Option<usize> {
+   ///    if self.keys.len() == 0 {
+   ///       return Option::None;
+   ///    }
+   ///
+   ///    Option::Some(self.keys[index])
+   /// }
+   ///
+   /// pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
+   ///
+   /// pub fn get_max_key(&self) -> Option<usize> {
+   ///    if self.keys.len() == 0 {
+   ///       return Option::None;
+   ///    }
+   ///
+   ///    let max_index = self.keys.len() - 1;
+   ///    self.get_key(max_index)
+   /// }
+   ///
+   /// pub fn is_root(&self) -> bool { self.parent.is_none() }
+   ///
 }
 
 #[cfg(test)]
