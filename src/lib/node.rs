@@ -4,12 +4,13 @@ use std::rc::{Rc, Weak};
 pub type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
+#[derive(Debug)]
 pub struct Node {
    pub parent : Option<WeakNodeRef>,
    pub keys: Vec<usize>,
    pub child_count: usize,
 
-   children: Vec<NodeRef>,
+   pub children: Vec<NodeRef>,
    order: usize,
    min_child_count: usize,
 }
@@ -150,7 +151,11 @@ impl Node {
    ///
    ///    (mid_key, self)
    /// }
+   fn no_func() {
 
+   }
+
+   /// Return a pointer to the child node at a given index
    pub fn get_child(&self, index: usize) -> Option<NodeRef> {
       if self.children.len() == 0{
          return Option::None;

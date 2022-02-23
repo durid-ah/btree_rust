@@ -41,11 +41,13 @@ impl BTree {
       let mut node: NodeRef = Rc::clone(&self.root);
 
       loop {
-         let res = (*node).borrow_mut().find_future_key_index(value);
+         let res = (*node).borrow_mut()
+            .find_future_key_index(value);
          if res.is_err() { return Err(ALREADY_EXISTS_ERROR); }
 
          let child_idx = res.unwrap();
-         let node_option = (*node).borrow_mut().get_child(child_idx);
+         let node_option = (*node).borrow_mut()
+            .get_child(child_idx);
          match node_option {
             None => break,
             Some(child) => node = child
@@ -70,15 +72,40 @@ mod tests {
    use super::*;
 
    fn build_tree() -> BTree {
-      BTree {order: 5, root: Rc::new(RefCell::new(Node::new(5)))}
+      let left_child = Rc::new(
+         RefCell::new(
+            Node::new(3)));
+
+      left_child.borrow_mut().add_key(1);
+      left_child.borrow_mut().add_key(3);
+
+      let right_child = Rc::new(
+         RefCell::new(
+            Node::new(3)));
+
+      right_child.borrow_mut().add_key(7);
+      right_child.borrow_mut().add_key(9);
+
+      let root = Rc::new(
+         RefCell::new(
+            Node::new(5)));
+
+      root.borrow_mut().add_key(3);
+
+      root.borrow_mut().children.push(left_child);
+      root.borrow_mut().children.push(right_child);
+
+      BTree {order: 3, root}
    }
 
    #[test]
    fn test_find_node() {
-      // TODO: Build a simple three node tree
-      // TODO: Test out finding in the left node and right node
-      // TODO: Figure out how to check reference between two NodeRefs
-      let mut tree = BTree::new(5);
-      tree.find_insert_node(2);
+      let mut tree = build_tree();
+      let left_node_test = tree.find_insert_node(2).unwrap();
+      let right_node_test = tree.find_insert_node(8).unwrap();
+
+      assert_eq!(left_node_test.borrow_mut().keys, vec![1, 3]);
+      assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
+
    }
 }
