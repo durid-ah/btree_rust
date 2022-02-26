@@ -13,7 +13,7 @@ fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + star
 /// * Min number of children `ceil(order/2)`
 #[derive(Debug)]
 pub struct Node {
-   parent : Option<WeakNodeRef>,
+   parent : WeakNodeRef,
    pub keys: Vec<usize>,
 
    pub children: Vec<NodeRef>,
@@ -24,7 +24,7 @@ impl Node {
    pub fn new(order: usize) -> Self {
 
       return Self {
-         parent: Option::None,
+         parent: Weak::new(),
          keys: Vec::with_capacity(order - 1),
          children: Vec::with_capacity(order),
          order
@@ -127,11 +127,9 @@ impl Node {
       let key_len = self.keys.len();
       let child_len = self.children.len();
       let mid_key_idx = key_len / 2;
-      let mid_key = self.keys[mid_key_idx];
-
-      println!("{:?}", mid_key_idx);
 
       let mut right_keys = Vec::with_capacity(self.order - 1);
+      let mut right_children = Vec::with_capacity(self.order);
 
       // pop half of the kids
       for _ in (mid_key_idx + 1)..key_len {
@@ -140,7 +138,6 @@ impl Node {
       }
       right_keys.reverse();
 
-      let mut right_children = Vec::with_capacity(self.order);
 
       // pop half of the children
       for _ in ((mid_key_idx + 1)..child_len).rev() {
@@ -149,30 +146,21 @@ impl Node {
       }
       right_children.reverse();
 
-      println!("### RIGHT_CHILD");
-      println!("{:?}", right_keys);
-      println!("{:?}", right_children);
+      let mid_key = self.keys.pop().unwrap();
 
-      println!();
-
-      println!("### LEFT_CHILD");
-      println!("{:?}", self.keys);
-      println!("{:?}", self.children);
-
-      println!("### MID");
-      println!("{:?}", mid_key);
-
-      // TODO: Pop out mid key and child from the left child
-
-      // FIXME: Missing with_vectors constructor
-      // TODO: Change to usual struct instantiation?
-      // let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
+      let right_node = Rc::new(RefCell::new(
+         Node{
+            children: right_children,
+            keys: right_keys,
+            order: self.order,
+            // TODO: Add check if parent needs to be instantiated
+            parent: self.parent.map(|item| item.clone())
+         }));
 
       // TODO: Connect to parent node? Do in BTree struct?
-
-      // TODO: Return parent, left child and right child?
-      // TODO: Return parent with children already inserted?
-      //(mid_key, self)
+      // TODO: Return the parent reference? Return the separate items
+      // TODO: to build them in the BTree?
+      // TODO: If the node is root return None?
    }
 
    /// Return a pointer to the child node at a given index

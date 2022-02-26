@@ -66,7 +66,8 @@ impl BTree {
       if node_ref.is_key_overflowing() { return; }
 
       // TODO: Execute split on node
-      // TODO: Insert key and children into parent
+      // TODO: Insert key and children into parent if it is not root
+      // TODO: Instantiate a new parent if it is the new root
       // TODO: The split nodes have to be separate for insertion into parent
       // TODO: Loop again
       // TODO: See Node for split method
