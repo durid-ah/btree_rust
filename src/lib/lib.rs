@@ -63,7 +63,7 @@ impl BTree {
    fn split_if_full(&self, node: &mut NodeRef) {
       let node_ref = node.borrow_mut();
 
-      if node_ref.is_key_overflowing() { return; }
+      if !node_ref.is_key_overflowing() { return; }
 
       // TODO: Execute split on node
       // TODO: Insert key and children into parent if it is not root

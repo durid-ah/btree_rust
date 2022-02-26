@@ -122,8 +122,8 @@ impl Node {
       panic!("Unable to find value {}", key)
    }
 
-   // TODO: Split Node
-   pub fn split_node(&mut self) { //-> (usize, Node, Node) {
+   // TODO: Test me and document me!!
+   pub fn split_node(&mut self) -> (usize, Node, Node) {
       let key_len = self.keys.len();
       let child_len = self.children.len();
       let mid_key_idx = key_len / 2;
@@ -136,31 +136,24 @@ impl Node {
          let key = self.keys.pop().unwrap();
          right_keys.push(key);
       }
-      right_keys.reverse();
-
+      right_keys.reverse(); // ensure they are in the proper order
 
       // pop half of the children
       for _ in ((mid_key_idx + 1)..child_len).rev() {
          let node = self.children.pop().unwrap();
          right_children.push(node);
       }
-      right_children.reverse();
+      right_children.reverse(); // ensure they are in the proper order
 
       let mid_key = self.keys.pop().unwrap();
+      let right_node = Node {
+         children: right_children,
+         keys: right_keys,
+         order: self.order,
+         parent: self.parent.clone()
+      };
 
-      let right_node = Rc::new(RefCell::new(
-         Node{
-            children: right_children,
-            keys: right_keys,
-            order: self.order,
-            // TODO: Add check if parent needs to be instantiated
-            parent: self.parent.map(|item| item.clone())
-         }));
-
-      // TODO: Connect to parent node? Do in BTree struct?
-      // TODO: Return the parent reference? Return the separate items
-      // TODO: to build them in the BTree?
-      // TODO: If the node is root return None?
+      return (mid_key, Self, right_node)
    }
 
    /// Return a pointer to the child node at a given index
