@@ -4,7 +4,10 @@ use node::{Node, NodeRef};
 
 mod node;
 
-const ALREADY_EXISTS_ERROR: &str = "Value already exists";
+#[derive(Debug)]
+pub enum BTreeError {
+   ValueAlreadyExists
+}
 
 pub struct BTree {
    root: NodeRef,
@@ -21,7 +24,7 @@ impl BTree {
    /// Add a value into the tree or return an error if the value already exists
    /// Works by searching each node for a possible location in every node
    /// until there is no child to insert it in
-   pub fn add(&mut self,value: usize) -> Result<(), String> {
+   pub fn add(&mut self,value: usize) -> Result<(), BTreeError> {
       let node_res = self.find_insert_node(value);
 
       if node_res.is_err() {
@@ -37,13 +40,13 @@ impl BTree {
    }
 
    /// Get the node were you would insert the desired value
-   fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, String> {
+   fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, BTreeError> {
       let mut node: NodeRef = Rc::clone(&self.root);
 
       loop {
          let res = (*node).borrow_mut()
             .find_future_key_index(value);
-         if res.is_err() { return Err(String::from(ALREADY_EXISTS_ERROR)); }
+         if res.is_err() { return Err(BTreeError::ValueAlreadyExists); }
 
          let child_idx = res.unwrap();
          let node_option = (*node).borrow_mut()

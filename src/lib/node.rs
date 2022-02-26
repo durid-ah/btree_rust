@@ -147,8 +147,19 @@ impl Node {
       }
       right_children.reverse();
 
+      println!("### RIGHT_CHILD");
       println!("{:?}", right_keys);
       println!("{:?}", right_children);
+
+      println!();
+
+      println!("### LEFT_CHILD");
+      println!("{:?}", self.keys);
+      println!("{:?}", self.children);
+
+      println!("### MID");
+      println!("{:?}", mid_key);
+
       // FIXME: Missing with_vectors constructor
       // TODO: Change to usual struct instantiation?
       // let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
@@ -193,7 +204,7 @@ impl Node {
    /// }
    ///
    /// pub fn is_root(&self) -> bool { self.parent.is_none() }
-   ///
+   fn stuff() {}
 }
 
 #[cfg(test)]
@@ -385,5 +396,16 @@ mod tests {
          Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
          Err(_) => assert!(false, "Value")
       }
+   }
+
+   #[test]
+   fn split_nodes() {
+      let mut node = Node::new(3);
+      node.keys.push(1);
+      node.keys.push(2);
+      node.keys.push(3);
+      node.keys.push(4);
+
+      node.split_node();
    }
 }
