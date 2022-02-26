@@ -123,7 +123,7 @@ impl Node {
    }
 
    // TODO: Test me and document me!!
-   pub fn split_node(&mut self) -> (usize, Node, Node) {
+   pub fn split_node(&mut self) -> (usize, Node) {
       let key_len = self.keys.len();
       let child_len = self.children.len();
       let mid_key_idx = key_len / 2;
@@ -153,12 +153,12 @@ impl Node {
          parent: self.parent.clone()
       };
 
-      return (mid_key, Self, right_node)
+      return (mid_key, right_node)
    }
 
    /// Return a pointer to the child node at a given index
    pub fn get_child(&self, index: usize) -> Option<NodeRef> {
-      if self.children.len() == 0{
+      if self.children.len() == 0 {
          return Option::None;
       }
 
@@ -385,24 +385,66 @@ mod tests {
 
    #[test]
    fn split_nodes_with_odd_order() {
-      let mut node = Node::new(3);
+      let order = 3;
+      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
+
+      let mut node = Node::new(order);
       node.keys.push(1);
       node.keys.push(2);
       node.keys.push(3);
       node.keys.push(4);
 
-      node.split_node();
+      let (mid_key, right) = node.split_node();
+
+      assert!(node.keys.len() >= min_key);
+      assert!(right.keys.len() >= min_key);
+
+      assert_eq!(node.keys, vec![1,2]);
+      assert_eq!(right.keys, vec![4]);
+      assert_eq!(mid_key, 3);
    }
 
    #[test]
    fn split_nodes_with_even_order() {
-      let mut node = Node::new(4);
+      let order = 4;
+      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
+
+      let mut node = Node::new(order);
       node.keys.push(1);
       node.keys.push(2);
       node.keys.push(3);
       node.keys.push(4);
       node.keys.push(5);
 
-      node.split_node();
+      let (mid_key, right) = node.split_node();
+
+      assert!(node.keys.len() >= min_key);
+      assert!(right.keys.len() >= min_key);
+
+      assert_eq!(node.keys, vec![1,2]);
+      assert_eq!(right.keys, vec![4,5]);
+      assert_eq!(mid_key, 3);
+   }
+
+   #[test]
+   fn split_nodes_with_6_order() {
+      let order = 6;
+      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
+
+      let mut node = Node::new(order);
+      node.keys.push(1);
+      node.keys.push(2);
+      node.keys.push(3);
+      node.keys.push(4);
+      node.keys.push(5);
+      node.keys.push(6);
+
+      let (mid_key, right) = node.split_node();
+
+      assert!(node.keys.len() >= min_key);
+      assert!(right.keys.len() >= min_key);
+      assert_eq!(node.keys, vec![1,2, 3]);
+      assert_eq!(right.keys, vec![5, 6]);
+      assert_eq!(mid_key, 4);
    }
 }
