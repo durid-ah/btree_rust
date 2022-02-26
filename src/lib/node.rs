@@ -126,13 +126,15 @@ impl Node {
    pub fn split_node(&mut self) { //-> (usize, Node, Node) {
       let key_len = self.keys.len();
       let child_len = self.children.len();
-      let mid_key_idx = (key_len / 2) + 1;
+      let mid_key_idx = key_len / 2;
       let mid_key = self.keys[mid_key_idx];
+
+      println!("{:?}", mid_key_idx);
 
       let mut right_keys = Vec::with_capacity(self.order - 1);
 
       // pop half of the kids
-      for _ in (mid_key + 1)..key_len {
+      for _ in (mid_key_idx + 1)..key_len {
          let key = self.keys.pop().unwrap();
          right_keys.push(key);
       }
@@ -141,7 +143,7 @@ impl Node {
       let mut right_children = Vec::with_capacity(self.order);
 
       // pop half of the children
-      for _ in ((mid_key + 1)..child_len).rev() {
+      for _ in ((mid_key_idx + 1)..child_len).rev() {
          let node = self.children.pop().unwrap();
          right_children.push(node);
       }
@@ -159,6 +161,8 @@ impl Node {
 
       println!("### MID");
       println!("{:?}", mid_key);
+
+      // TODO: Pop out mid key and child from the left child
 
       // FIXME: Missing with_vectors constructor
       // TODO: Change to usual struct instantiation?
@@ -399,12 +403,24 @@ mod tests {
    }
 
    #[test]
-   fn split_nodes() {
+   fn split_nodes_with_odd_order() {
       let mut node = Node::new(3);
       node.keys.push(1);
       node.keys.push(2);
       node.keys.push(3);
       node.keys.push(4);
+
+      node.split_node();
+   }
+
+   #[test]
+   fn split_nodes_with_even_order() {
+      let mut node = Node::new(4);
+      node.keys.push(1);
+      node.keys.push(2);
+      node.keys.push(3);
+      node.keys.push(4);
+      node.keys.push(5);
 
       node.split_node();
    }
