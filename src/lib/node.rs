@@ -7,6 +7,10 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 // Utilities:
 fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + start }
 
+/// # Node Rules:
+/// * Max number of keys (order - 1)
+/// * Min number of keys `ceil(order/2) - 1`
+/// * Min number of children `ceil(order/2)`
 #[derive(Debug)]
 pub struct Node {
    parent : Option<WeakNodeRef>,
@@ -127,22 +131,26 @@ impl Node {
 
       let mut right_keys = Vec::with_capacity(self.order - 1);
 
-      // TODO: change to a Option::None check?
+      // pop half of the kids
       for _ in (mid_key + 1)..key_len {
          let key = self.keys.pop().unwrap();
-         right_keys.push(key); // TODO: Sorting?
+         right_keys.push(key);
       }
+      right_keys.reverse();
 
       let mut right_children = Vec::with_capacity(self.order);
 
-      // TODO: change to a Option::None check?
+      // pop half of the children
       for _ in ((mid_key + 1)..child_len).rev() {
          let node = self.children.pop().unwrap();
-         right_children.push(node); // TODO: Sorting?
+         right_children.push(node);
       }
+      right_children.reverse();
 
+      println!("{:?}", right_keys);
+      println!("{:?}", right_children);
       // FIXME: Missing with_vectors constructor
-      // TODO: Change to normal constructor?
+      // TODO: Change to usual struct instantiation?
       // let right_node = Node::with_vectors(right_keys, right_children, self.order, self.is_leaf, self.is_root);
 
       // TODO: Connect to parent node? Do in BTree struct?
