@@ -52,6 +52,11 @@ impl Node {
       }
    }
 
+   // TODO: Implement child addition
+   pub fn add_child(&mut self, child: NodeRef) {
+      unimplemented!()
+   }
+
    /// Return index of the key if found or Option::None otherwise
    pub fn find_key(&self, key: usize) -> Option<usize> {
       if self.keys.len() == 0 {
