@@ -13,7 +13,7 @@ fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + star
 /// * Min number of children `ceil(order/2)`
 #[derive(Debug)]
 pub struct Node {
-   parent : WeakNodeRef,
+   pub parent : WeakNodeRef,
    pub keys: Vec<usize>,
 
    pub children: Vec<NodeRef>,
@@ -122,7 +122,12 @@ impl Node {
       panic!("Unable to find value {}", key)
    }
 
-   // TODO: Test me and document me!!
+   /// Split the node down the middle and return the mid key and right
+   /// node that broke off
+   ///
+   /// # Returns
+   /// (mid_key: usize, right_node: Node) => `mid_key` represents the key in the middle of
+   /// node and `right_node` is the node broken off to the right
    pub fn split_node(&mut self) -> (usize, Node) {
       let key_len = self.keys.len();
       let child_len = self.children.len();

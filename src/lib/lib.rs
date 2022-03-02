@@ -11,6 +11,7 @@ pub enum BTreeError {
 
 pub struct BTree {
    root: NodeRef,
+   order: usize
 }
 
 impl BTree {
@@ -18,6 +19,7 @@ impl BTree {
 
       return Self {
          root: Rc::new(RefCell::new(Node::new(order))),
+         order
       }
    }
 
@@ -61,14 +63,20 @@ impl BTree {
    }
 
    fn split_if_full(&self, node: &mut NodeRef) {
-      let node_ref = node.borrow_mut();
+      let mut node_ref = node.borrow_mut();
 
       if !node_ref.is_key_overflowing() { return; }
 
-      // TODO: Execute split on node
-      // TODO: Insert key and children into parent if it is not root
-      // TODO: Instantiate a new parent if it is the new root
-      // TODO: The split nodes have to be separate for insertion into parent
+      let (mid_key, right_node) = node_ref.split_node();
+      let parent_option: Option<NodeRef> = node_ref.parent.upgrade();
+
+      let parent = match parent_option {
+         Some(node_ref) => node_ref,
+         None => Rc::new(RefCell::new(Node::new(self.order)))
+      };
+
+      parent.borrow_mut().add_key(mid_key);
+      // TODO: Insert children into parent (both node_ref and right node
       // TODO: Loop again
       // TODO: See Node for split method
    }
@@ -104,7 +112,7 @@ mod tests {
       root.borrow_mut().children.push(left_child);
       root.borrow_mut().children.push(right_child);
 
-      BTree { root }
+      BTree { root, order: 3 }
    }
 
    #[test]
