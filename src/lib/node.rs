@@ -54,7 +54,8 @@ impl Node {
 
    // TODO: Implement child addition
    pub fn add_child(&mut self, child: NodeRef) {
-      unimplemented!()
+      // TODO: Set parent
+      // TODO: Add child in the proper order
    }
 
    /// Return index of the key if found or Option::None otherwise

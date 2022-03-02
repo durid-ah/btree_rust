@@ -36,7 +36,7 @@ impl BTree {
       let mut node = node_res.unwrap();
       node.borrow_mut().add_key(value);
 
-      self.split_if_full(&mut node);
+      self.split_if_full(node);
 
       return Ok(());
    }
@@ -62,7 +62,7 @@ impl BTree {
       return Ok(node);
    }
 
-   fn split_if_full(&self, node: &mut NodeRef) {
+   fn split_if_full(&self, node: NodeRef) {
       let mut node_ref = node.borrow_mut();
 
       if !node_ref.is_key_overflowing() { return; }
@@ -75,10 +75,14 @@ impl BTree {
          None => Rc::new(RefCell::new(Node::new(self.order)))
       };
 
-      parent.borrow_mut().add_key(mid_key);
-      // TODO: Insert children into parent (both node_ref and right node
+      let mut parent_node = parent.borrow_mut();
+
+      parent_node.add_key(mid_key);
+      parent_node.add_child(node); // left node
+      parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
+
+      // TODO: Make sure that the nodes point to the parent
       // TODO: Loop again
-      // TODO: See Node for split method
    }
 }
 
