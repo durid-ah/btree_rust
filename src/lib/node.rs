@@ -54,7 +54,6 @@ impl Node {
 
    // TODO: Implement child addition
    pub fn add_child(&mut self, child: NodeRef) {
-      // TODO: Set parent
       // TODO: Add child in the proper order
    }
 

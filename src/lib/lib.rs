@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc};
 use node::{Node, NodeRef};
 
 mod node;
@@ -33,7 +33,7 @@ impl BTree {
          return Err(node_res.unwrap_err());
       }
 
-      let mut node = node_res.unwrap();
+      let node = node_res.unwrap();
       node.borrow_mut().add_key(value);
 
       self.split_if_full(node);
@@ -67,7 +67,7 @@ impl BTree {
 
       if !node_ref.is_key_overflowing() { return; }
 
-      let (mid_key, right_node) = node_ref.split_node();
+      let (mid_key, mut right_node) = node_ref.split_node();
       let parent_option: Option<NodeRef> = node_ref.parent.upgrade();
 
       let parent = match parent_option {
@@ -77,11 +77,13 @@ impl BTree {
 
       let mut parent_node = parent.borrow_mut();
 
+      right_node.parent = Rc::downgrade(&parent);
+      node_ref.parent = Rc::downgrade(&parent);
+
       parent_node.add_key(mid_key);
-      parent_node.add_child(node); // left node
+      parent_node.add_child(Rc::clone(&node)); // left node
       parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
 
-      // TODO: Make sure that the nodes point to the parent
       // TODO: Loop again
    }
 }
