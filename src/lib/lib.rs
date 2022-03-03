@@ -53,6 +53,7 @@ impl BTree {
          let child_idx = res.unwrap();
          let node_option = (*node).borrow_mut()
             .get_child(child_idx);
+
          match node_option {
             None => break,
             Some(child) => node = child
@@ -63,28 +64,27 @@ impl BTree {
    }
 
    fn split_if_full(&self, node: NodeRef) {
-      let mut node_ref = node.borrow_mut();
+      let mut node_to_split = node.borrow_mut();
 
-      if !node_ref.is_key_overflowing() { return; }
+      while !node_to_split.is_key_overflowing()
+      {
+         let (mid_key, mut right_node) = node_to_split.split_node();
+         let parent_option: Option<NodeRef> = node_to_split.parent.upgrade();
 
-      let (mid_key, mut right_node) = node_ref.split_node();
-      let parent_option: Option<NodeRef> = node_ref.parent.upgrade();
+         let parent = match parent_option {
+            Some(node_ref) => node_ref,
+            None => Rc::new(RefCell::new(Node::new(self.order)))
+         };
 
-      let parent = match parent_option {
-         Some(node_ref) => node_ref,
-         None => Rc::new(RefCell::new(Node::new(self.order)))
-      };
+         let mut parent_node = parent.borrow_mut();
 
-      let mut parent_node = parent.borrow_mut();
+         right_node.parent = Rc::downgrade(&parent);
+         node_to_split.parent = Rc::downgrade(&parent);
 
-      right_node.parent = Rc::downgrade(&parent);
-      node_ref.parent = Rc::downgrade(&parent);
-
-      parent_node.add_key(mid_key);
-      parent_node.add_child(Rc::clone(&node)); // left node
-      parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
-
-      // TODO: Loop again
+         parent_node.add_key(mid_key);
+         parent_node.add_child(Rc::clone(&node)); // left node
+         parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
+      }
    }
 }
 
