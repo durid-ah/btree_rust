@@ -54,7 +54,23 @@ impl Node {
 
    // TODO: Implement child addition
    pub fn add_child(&mut self, child: NodeRef) {
+      self.children.push(child);
+      let new_child_idx = self.children.len() - 1;
+
+      if new_child_idx == 0 { return; }
+
+      let current_idx = new_child_idx - 1;
+      let current_val = self.children[current_idx]
+         .borrow_mut().get_max_key();
+
+      let new_child_val =  self.children[new_child_idx]
+         .borrow_mut().get_min_key();
+
+      while new_child_val < current_val  {
+         // TODO: swapping
+      }
       // TODO: Add child in the proper order
+
    }
 
    /// Return index of the key if found or Option::None otherwise
@@ -178,28 +194,16 @@ impl Node {
    /// Shows if the key container is over capacity and ready for a split
    pub fn is_key_overflowing(&self) -> bool { self.keys.len() > self.order - 1 }
 
-   ///
-   /// pub fn get_key(&self, index: usize) -> Option<usize> {
-   ///    if self.keys.len() == 0 {
-   ///       return Option::None;
-   ///    }
-   ///
-   ///    Option::Some(self.keys[index])
-   /// }
-   ///
-   /// pub fn get_min_key(&self) -> Option<usize> { return self.get_key(0); }
-   ///
-   /// pub fn get_max_key(&self) -> Option<usize> {
-   ///    if self.keys.len() == 0 {
-   ///       return Option::None;
-   ///    }
-   ///
-   ///    let max_index = self.keys.len() - 1;
-   ///    self.get_key(max_index)
-   /// }
-   ///
-   /// pub fn is_root(&self) -> bool { self.parent.is_none() }
-   fn stuff() {}
+   fn get_key(&self, index: usize) -> usize {
+      self.keys[index]
+   }
+
+   fn get_min_key(&self) -> usize { return self.get_key(0); }
+
+   fn get_max_key(&self) -> usize {
+      let max_index = self.keys.len() - 1;
+      self.get_key(max_index)
+   }
 }
 
 #[cfg(test)]
