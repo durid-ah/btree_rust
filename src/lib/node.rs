@@ -41,9 +41,7 @@ impl Node {
       // shift the key to the left until the values are in order
       let mut current_idx = new_key_idx - 1;
       while self.keys[new_key_idx] < self.keys[current_idx] {
-         let temp = self.keys[current_idx];
-         self.keys[current_idx] = self.keys[new_key_idx];
-         self.keys[new_key_idx] = temp;
+         self.keys.swap(new_key_idx, current_idx);
 
          if current_idx > 0 {
             new_key_idx = current_idx;
@@ -52,25 +50,32 @@ impl Node {
       }
    }
 
-   // TODO: Implement child addition
    pub fn add_child(&mut self, child: NodeRef) {
       self.children.push(child);
-      let new_child_idx = self.children.len() - 1;
 
+      let mut new_child_idx = self.children.len() - 1;
       if new_child_idx == 0 { return; }
 
-      let current_idx = new_child_idx - 1;
-      let current_val = self.children[current_idx]
-         .borrow_mut().get_max_key();
+      let mut current_idx = new_child_idx - 1;
 
-      let new_child_val =  self.children[new_child_idx]
-         .borrow_mut().get_min_key();
+      loop {
+         let mut current_val = self.children[current_idx]
+            .borrow_mut().get_max_key();
+         let mut new_child_val =  self.children[new_child_idx]
+            .borrow_mut().get_min_key();
 
-      while new_child_val < current_val  {
-         // TODO: swapping
+         if new_child_val < current_val {
+            self.children.swap(new_child_idx, current_idx);
+         }
+         else { // if the value is in the right spot end the loop
+            break;
+         }
+
+         if current_idx > 0 {
+            new_child_idx = current_idx;
+            current_idx -= 1;
+         }
       }
-      // TODO: Add child in the proper order
-
    }
 
    /// Return index of the key if found or Option::None otherwise
