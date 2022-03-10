@@ -50,6 +50,7 @@ impl Node {
       }
    }
 
+   // TODO: TEST ME!
    pub fn add_child(&mut self, child: NodeRef) {
       self.children.push(child);
 
