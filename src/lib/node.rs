@@ -474,9 +474,8 @@ mod tests {
    mod child_tests {
       use super::*;
 
-      #[test]
-      fn add_children_in_order() {
-         let mut parent = Node::new(5);
+      fn build_parent_and_two_nodes() -> (Node, NodeRef, NodeRef) {
+         let parent = Node::new(5);
 
          let first_child: NodeRef = Rc::new(RefCell::new(Node::new(5)));
          first_child.borrow_mut().add_key(1);
@@ -484,8 +483,31 @@ mod tests {
          let second_child: NodeRef = Rc::new(RefCell::new(Node::new(5)));
          second_child.borrow_mut().add_key(2);
 
+         return (parent, first_child, second_child);
+      }
+
+      #[test]
+      fn add_children_in_order() {
+         let (mut parent, first_child, second_child) =
+            build_parent_and_two_nodes();
+
          parent.add_child(first_child);
          parent.add_child(second_child);
+
+         let first = parent.get_child(0).unwrap();
+         let second = parent.get_child(1).unwrap();
+
+         assert_eq!(first.borrow_mut().get_key(0), 1);
+         assert_eq!(second.borrow_mut().get_key(0), 2);
+      }
+
+      #[test]
+      fn add_children_out_of_order() {
+         let (mut parent, first_child, second_child) =
+            build_parent_and_two_nodes();
+
+         parent.add_child(second_child);
+         parent.add_child(first_child);
 
          let first = parent.get_child(0).unwrap();
          let second = parent.get_child(1).unwrap();
