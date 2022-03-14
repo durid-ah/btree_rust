@@ -50,7 +50,6 @@ impl Node {
       }
    }
 
-   // TODO: TEST ME!
    pub fn add_child(&mut self, child: NodeRef) {
       self.children.push(child);
 
@@ -483,7 +482,6 @@ mod tests {
          assert_eq!(mid_key, 4);
       }
    }
-
 
    mod child_tests {
       use super::*;
