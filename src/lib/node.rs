@@ -219,257 +219,271 @@ mod tests {
    use crate::node::Node;
    use crate::NodeRef;
 
-   #[test]
-   fn find_key_in_1_element() {
-      let mut node = Node::new(5);
-      node.keys.push(5);
+   mod find_key_tests {
+      use super::*;
 
-      let res = node.find_key(5);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 0);
+      #[test]
+      fn find_key_in_1_element() {
+         let mut node = Node::new(5);
+         node.keys.push(5);
 
-      let res = node.find_key(3);
-      assert!(res.is_none());
+         let res = node.find_key(5);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 0);
+
+         let res = node.find_key(3);
+         assert!(res.is_none());
+      }
+
+      #[test]
+      fn find_key_in_2_element() {
+         let mut node = Node::new(5);
+         node.keys.push(5);
+         node.keys.push(7);
+
+         let res = node.find_key(5);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 0);
+
+         let res = node.find_key(7);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 1);
+
+         let res = node.find_key(3);
+         assert!(res.is_none());
+
+         let res = node.find_key(6);
+         assert!(res.is_none());
+
+         let res = node.find_key(8);
+         assert!(res.is_none());
+      }
+
+      #[test]
+      fn find_key_in_3_element() {
+         let mut node = Node::new(8);
+         node.keys = vec![5,7,9];
+
+         let res = node.find_key(5);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 0);
+
+         let res = node.find_key(7);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 1);
+
+         let res = node.find_key(9);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 2);
+
+         let res = node.find_key(3);
+         assert!(res.is_none());
+
+         let res = node.find_key(6);
+         assert!(res.is_none());
+
+         let res = node.find_key(8);
+         assert!(res.is_none());
+
+         let res = node.find_key(10);
+         assert!(res.is_none());
+      }
+
+      #[test]
+      fn find_key_in_4_element() {
+         let mut node = Node::new(8);
+         node.keys = vec![5,7,9,11];
+
+         let res = node.find_key(5);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 0);
+
+         let res = node.find_key(7);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 1);
+
+         let res = node.find_key(9);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 2);
+
+         let res = node.find_key(11);
+         assert!(res.is_some());
+         assert_eq!(res.unwrap(), 3);
+
+         let res = node.find_key(3);
+         assert!(res.is_none());
+
+         let res = node.find_key(6);
+         assert!(res.is_none());
+
+         let res = node.find_key(8);
+         assert!(res.is_none());
+
+         let res = node.find_key(10);
+         assert!(res.is_none());
+
+         let res = node.find_key(12);
+         assert!(res.is_none());
+      }
+
    }
 
-   #[test]
-   fn find_key_in_2_element() {
-      let mut node = Node::new(5);
-      node.keys.push(5);
-      node.keys.push(7);
+   mod find_location_tests {
+      use super::*;
 
-      let res = node.find_key(5);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 0);
+      #[test]
+      fn find_location_in_even_vector() {
+         let mut node = Node::new(5);
+         node.keys = vec![5, 10, 15, 20];
 
-      let res = node.find_key(7);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 1);
+         match node.find_future_key_index(3) {
+            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
 
-      let res = node.find_key(3);
-      assert!(res.is_none());
+         match node.find_future_key_index(8) {
+            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
 
-      let res = node.find_key(6);
-      assert!(res.is_none());
+         match node.find_future_key_index(11) {
+            Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
 
-      let res = node.find_key(8);
-      assert!(res.is_none());
-   }
+         match node.find_future_key_index(18) {
+            Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
 
-   #[test]
-   fn find_key_in_3_element() {
-      let mut node = Node::new(8);
-      node.keys = vec![5,7,9];
-
-      let res = node.find_key(5);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 0);
-
-      let res = node.find_key(7);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 1);
-
-      let res = node.find_key(9);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 2);
-
-      let res = node.find_key(3);
-      assert!(res.is_none());
-
-      let res = node.find_key(6);
-      assert!(res.is_none());
-
-      let res = node.find_key(8);
-      assert!(res.is_none());
-
-      let res = node.find_key(10);
-      assert!(res.is_none());
-   }
-
-   #[test]
-   fn find_key_in_4_element() {
-      let mut node = Node::new(8);
-      node.keys = vec![5,7,9,11];
-
-      let res = node.find_key(5);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 0);
-
-      let res = node.find_key(7);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 1);
-
-      let res = node.find_key(9);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 2);
-
-      let res = node.find_key(11);
-      assert!(res.is_some());
-      assert_eq!(res.unwrap(), 3);
-
-      let res = node.find_key(3);
-      assert!(res.is_none());
-
-      let res = node.find_key(6);
-      assert!(res.is_none());
-
-      let res = node.find_key(8);
-      assert!(res.is_none());
-
-      let res = node.find_key(10);
-      assert!(res.is_none());
-
-      let res = node.find_key(12);
-      assert!(res.is_none());
-   }
-
-   #[test]
-   fn find_location_in_even_vector() {
-      let mut node = Node::new(5);
-      node.keys = vec![5, 10, 15, 20];
-
-      match node.find_future_key_index(3) {
-         Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+         match node.find_future_key_index(25) {
+            Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
       }
 
-      match node.find_future_key_index(8) {
-         Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+      #[test]
+      fn find_location_in_odd_vector() {
+         let mut node = Node::new(5);
+         node.keys = vec![5, 10, 15, 20, 25];
+
+         match node.find_future_key_index(3) {
+            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
+
+         match node.find_future_key_index(8) {
+            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
+
+         match node.find_future_key_index(11) {
+            Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
+
+         match node.find_future_key_index(18) {
+            Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
+
+         match node.find_future_key_index(23) {
+            Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
+
+         match node.find_future_key_index(26) {
+            Ok(index) => assert_eq!(index, 5, "Value must be 5 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
       }
 
-      match node.find_future_key_index(11) {
-         Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
+      #[test]
+      fn find_location_in_single_element() {
+         let mut node = Node::new(5);
+         node.keys = vec![5];
 
-      match node.find_future_key_index(18) {
-         Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
+         match node.find_future_key_index(3) {
+            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
 
-      match node.find_future_key_index(25) {
-         Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+         match node.find_future_key_index(8) {
+            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            Err(_) => assert!(false, "Value")
+         }
       }
    }
 
-   #[test]
-   fn find_location_in_odd_vector() {
-      let mut node = Node::new(5);
-      node.keys = vec![5, 10, 15, 20, 25];
+   mod split_nodes_tests {
+      use super::*;
 
-      match node.find_future_key_index(3) {
-         Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+      #[test]
+      fn split_nodes_with_odd_order() {
+         let order = 3;
+         let min_key = (order as f32 / 2.0).ceil() as usize - 1;
+
+         let mut node = Node::new(order);
+         node.keys.push(1);
+         node.keys.push(2);
+         node.keys.push(3);
+         node.keys.push(4);
+
+         let (mid_key, right) = node.split_node();
+
+         assert!(node.keys.len() >= min_key);
+         assert!(right.keys.len() >= min_key);
+
+         assert_eq!(node.keys, vec![1,2]);
+         assert_eq!(right.keys, vec![4]);
+         assert_eq!(mid_key, 3);
       }
 
-      match node.find_future_key_index(8) {
-         Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+      #[test]
+      fn split_nodes_with_even_order() {
+         let order = 4;
+         let min_key = (order as f32 / 2.0).ceil() as usize - 1;
+
+         let mut node = Node::new(order);
+         node.keys.push(1);
+         node.keys.push(2);
+         node.keys.push(3);
+         node.keys.push(4);
+         node.keys.push(5);
+
+         let (mid_key, right) = node.split_node();
+
+         assert!(node.keys.len() >= min_key);
+         assert!(right.keys.len() >= min_key);
+
+         assert_eq!(node.keys, vec![1,2]);
+         assert_eq!(right.keys, vec![4,5]);
+         assert_eq!(mid_key, 3);
       }
 
-      match node.find_future_key_index(11) {
-         Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
+      #[test]
+      fn split_nodes_with_6_order() {
+         let order = 6;
+         let min_key = (order as f32 / 2.0).ceil() as usize - 1;
 
-      match node.find_future_key_index(18) {
-         Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
+         let mut node = Node::new(order);
+         node.keys.push(1);
+         node.keys.push(2);
+         node.keys.push(3);
+         node.keys.push(4);
+         node.keys.push(5);
+         node.keys.push(6);
 
-      match node.find_future_key_index(23) {
-         Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
+         let (mid_key, right) = node.split_node();
 
-      match node.find_future_key_index(26) {
-         Ok(index) => assert_eq!(index, 5, "Value must be 5 instead got {}", index),
-         Err(_) => assert!(false, "Value")
+         assert!(node.keys.len() >= min_key);
+         assert!(right.keys.len() >= min_key);
+         assert_eq!(node.keys, vec![1,2, 3]);
+         assert_eq!(right.keys, vec![5, 6]);
+         assert_eq!(mid_key, 4);
       }
    }
 
-   #[test]
-   fn find_location_in_single_element() {
-      let mut node = Node::new(5);
-      node.keys = vec![5];
-
-      match node.find_future_key_index(3) {
-         Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
-
-      match node.find_future_key_index(8) {
-         Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-         Err(_) => assert!(false, "Value")
-      }
-   }
-
-   #[test]
-   fn split_nodes_with_odd_order() {
-      let order = 3;
-      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
-
-      let mut node = Node::new(order);
-      node.keys.push(1);
-      node.keys.push(2);
-      node.keys.push(3);
-      node.keys.push(4);
-
-      let (mid_key, right) = node.split_node();
-
-      assert!(node.keys.len() >= min_key);
-      assert!(right.keys.len() >= min_key);
-
-      assert_eq!(node.keys, vec![1,2]);
-      assert_eq!(right.keys, vec![4]);
-      assert_eq!(mid_key, 3);
-   }
-
-   #[test]
-   fn split_nodes_with_even_order() {
-      let order = 4;
-      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
-
-      let mut node = Node::new(order);
-      node.keys.push(1);
-      node.keys.push(2);
-      node.keys.push(3);
-      node.keys.push(4);
-      node.keys.push(5);
-
-      let (mid_key, right) = node.split_node();
-
-      assert!(node.keys.len() >= min_key);
-      assert!(right.keys.len() >= min_key);
-
-      assert_eq!(node.keys, vec![1,2]);
-      assert_eq!(right.keys, vec![4,5]);
-      assert_eq!(mid_key, 3);
-   }
-
-   #[test]
-   fn split_nodes_with_6_order() {
-      let order = 6;
-      let min_key = (order as f32 / 2.0).ceil() as usize - 1;
-
-      let mut node = Node::new(order);
-      node.keys.push(1);
-      node.keys.push(2);
-      node.keys.push(3);
-      node.keys.push(4);
-      node.keys.push(5);
-      node.keys.push(6);
-
-      let (mid_key, right) = node.split_node();
-
-      assert!(node.keys.len() >= min_key);
-      assert!(right.keys.len() >= min_key);
-      assert_eq!(node.keys, vec![1,2, 3]);
-      assert_eq!(right.keys, vec![5, 6]);
-      assert_eq!(mid_key, 4);
-   }
 
    mod child_tests {
       use super::*;
