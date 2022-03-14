@@ -60,9 +60,9 @@ impl Node {
       let mut current_idx = new_child_idx - 1;
 
       loop {
-         let mut current_val = self.children[current_idx]
+         let current_val = self.children[current_idx]
             .borrow_mut().get_max_key();
-         let mut new_child_val =  self.children[new_child_idx]
+         let new_child_val =  self.children[new_child_idx]
             .borrow_mut().get_min_key();
 
          if new_child_val < current_val {
@@ -214,7 +214,10 @@ impl Node {
 
 #[cfg(test)]
 mod tests {
+   use std::cell::RefCell;
+   use std::rc::Rc;
    use crate::node::Node;
+   use crate::NodeRef;
 
    #[test]
    fn find_key_in_1_element() {
@@ -466,5 +469,29 @@ mod tests {
       assert_eq!(node.keys, vec![1,2, 3]);
       assert_eq!(right.keys, vec![5, 6]);
       assert_eq!(mid_key, 4);
+   }
+
+   mod child_tests {
+      use super::*;
+
+      #[test]
+      fn add_children_in_order() {
+         let mut parent = Node::new(5);
+
+         let first_child: NodeRef = Rc::new(RefCell::new(Node::new(5)));
+         first_child.borrow_mut().add_key(1);
+
+         let second_child: NodeRef = Rc::new(RefCell::new(Node::new(5)));
+         second_child.borrow_mut().add_key(2);
+
+         parent.add_child(first_child);
+         parent.add_child(second_child);
+
+         let first = parent.get_child(0).unwrap();
+         let second = parent.get_child(1).unwrap();
+
+         assert_eq!(first.borrow_mut().get_key(0), 1);
+         assert_eq!(second.borrow_mut().get_key(0), 2);
+      }
    }
 }

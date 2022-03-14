@@ -16,7 +16,6 @@ pub struct BTree {
 
 impl BTree {
    pub fn new(order: usize) -> Self {
-
       return Self {
          root: Rc::new(RefCell::new(Node::new(order))),
          order
