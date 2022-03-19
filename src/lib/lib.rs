@@ -45,12 +45,12 @@ impl BTree {
       let mut node: NodeRef = Rc::clone(&self.root);
 
       loop {
-         let res = (*node).borrow_mut()
+         let res = (*node.borrow_mut())
             .find_future_key_index(value);
          if res.is_err() { return Err(BTreeError::ValueAlreadyExists); }
 
          let child_idx = res.unwrap();
-         let node_option = (*node).borrow_mut()
+         let node_option = (*node.borrow_mut())
             .get_child(child_idx);
 
          match node_option {
@@ -62,27 +62,33 @@ impl BTree {
       return Ok(node);
    }
 
-   fn split_if_full(&self, node: NodeRef) {
-      let mut node_to_split = node.borrow_mut();
+   fn split_if_full(&mut self, node: NodeRef) {
+      let mut node_ref = Rc::clone(&node);
 
-      while !node_to_split.is_key_overflowing()
-      {
-         let (mid_key, mut right_node) = node_to_split.split_node();
-         let parent_option: Option<NodeRef> = node_to_split.parent.upgrade();
+      loop {
+         if !(*node_ref.borrow_mut()).is_key_overflowing() { break; }
 
-         let parent = match parent_option {
-            Some(node_ref) => node_ref,
-            None => Rc::new(RefCell::new(Node::new(self.order)))
+         let (mid_key, mut right_node) = (*node_ref.borrow_mut()).split_node();
+         let parent_option: Option<NodeRef> = (*node_ref.borrow_mut()).parent.upgrade();
+
+         let parent: NodeRef = match parent_option {
+            Some(node_ref) => Rc::clone(&node_ref),
+            None => {
+               let new_parent :NodeRef = Rc::new(RefCell::new(Node::new(self.order)));
+               self.root = Rc::clone(&new_parent);
+               new_parent
+            }
          };
 
          let mut parent_node = parent.borrow_mut();
 
          right_node.parent = Rc::downgrade(&parent);
-         node_to_split.parent = Rc::downgrade(&parent);
+         (*node_ref.borrow_mut()).parent = Rc::downgrade(&parent);
 
          parent_node.add_key(mid_key);
          parent_node.add_child(Rc::clone(&node)); // left node
          parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
+         node_ref = Rc::clone(&parent)
       }
    }
 }
@@ -136,4 +142,20 @@ mod tests {
       assert_eq!(right_node_test.borrow_mut().keys, vec![7, 9]);
 
    }
+
+
+   #[test]
+   fn test_add_node() {
+      let mut tree = BTree::new(3);
+      let _ = tree.add(1);
+      let _ = tree.add(2);
+      let _ = tree.add(3);
+      let _ = tree.add(4);
+
+      let root_ref = tree.root;
+      let root = root_ref.borrow_mut();
+      assert_eq!(root.children.len(), 2);
+   }
+
+
 }

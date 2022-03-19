@@ -1,7 +1,7 @@
 use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
 
-pub type NodeRef = Rc<RefCell<Node>>;
+pub(super) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
 // Utilities:
@@ -12,7 +12,7 @@ fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + star
 /// * Min number of keys `ceil(order/2) - 1`
 /// * Min number of children `ceil(order/2)`
 #[derive(Debug)]
-pub struct Node {
+pub(super) struct Node {
    pub parent : WeakNodeRef,
    pub keys: Vec<usize>,
 
@@ -59,17 +59,14 @@ impl Node {
       let mut current_idx = new_child_idx - 1;
 
       loop {
-         let current_val = self.children[current_idx]
-            .borrow_mut().get_max_key();
-         let new_child_val =  self.children[new_child_idx]
-            .borrow_mut().get_min_key();
+         let current_val= (*self.children[current_idx].borrow_mut()).get_max_key();
+         let new_child_val = (*self.children[new_child_idx].borrow()).get_min_key();
 
-         if new_child_val < current_val {
-            self.children.swap(new_child_idx, current_idx);
-         }
-         else { // if the value is in the right spot end the loop
+         if new_child_val > current_val { // if the value is in the right spot end the loop
             break;
          }
+
+         self.children.swap(new_child_idx, current_idx);
 
          if current_idx > 0 {
             new_child_idx = current_idx;
