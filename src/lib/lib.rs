@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::{Rc};
-use node::{Node, NodeRef};
+use node::{Node, NodeRef, new_node_ref};
 
 mod node;
 
@@ -17,7 +17,7 @@ pub struct BTree {
 impl BTree {
    pub fn new(order: usize) -> Self {
       return Self {
-         root: Rc::new(RefCell::new(Node::new(order))),
+         root: new_node_ref(order),
          order
       }
    }
@@ -62,6 +62,9 @@ impl BTree {
       return Ok(node);
    }
 
+   // TODO: Fix the duplicate left node
+   // TODO: Use Rc::ptr_eq? in the add child?
+   // TODO: Avoid insertion in the first place?
    fn split_if_full(&mut self, node: NodeRef) {
       let mut node_ref = Rc::clone(&node);
 
@@ -73,12 +76,9 @@ impl BTree {
 
          let parent: NodeRef = match parent_option {
             Some(node_ref) => Rc::clone(&node_ref),
-            None => {
-               // if we are splitting the root node instantiate a new parent
-               let new_parent :NodeRef = Rc::new(
-                  RefCell::new(Node::new(self.order)));
-               // set the new parent as the root
-               self.root = Rc::clone(&new_parent);
+            None => { // if we are splitting the root node instantiate a new parent
+               let new_parent :NodeRef = new_node_ref(self.order);
+               self.root = Rc::clone(&new_parent); // set the new parent as the root
                new_parent
             }
          };

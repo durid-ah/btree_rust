@@ -1,18 +1,22 @@
 use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
 
-pub(super) type NodeRef = Rc<RefCell<Node>>;
+pub(crate) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
 // Utilities:
 fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + start }
+
+pub(crate) fn new_node_ref(order: usize) -> NodeRef {
+   Rc::new(RefCell::new(Node::new(order)))
+}
 
 /// # Node Rules:
 /// * Max number of keys (order - 1)
 /// * Min number of keys `ceil(order/2) - 1`
 /// * Min number of children `ceil(order/2)`
 #[derive(Debug)]
-pub(super) struct Node {
+pub(crate) struct Node {
    pub parent : WeakNodeRef,
    pub keys: Vec<usize>,
 
