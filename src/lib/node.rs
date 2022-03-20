@@ -158,10 +158,12 @@ impl Node {
    /// # Returns
    /// (mid_key: usize, right_node: Node) => `mid_key` represents the key in the middle of
    /// node and `right_node` is the node broken off to the right
-   pub fn split_node(&mut self) -> (usize, Node) {
+   pub fn split_node(&mut self) -> (usize, NodeRef) {
       let key_len = self.keys.len();
       let child_len = self.children.len();
       let mid_key_idx = key_len / 2;
+
+      let right_node = new_node_ref(self.order);
 
       let mut right_keys = Vec::with_capacity(self.order - 1);
       let mut right_children = Vec::with_capacity(self.order);
@@ -176,19 +178,18 @@ impl Node {
       // pop half of the children
       for _ in ((mid_key_idx + 1)..child_len).rev() {
          let node = self.children.pop().unwrap();
+         node.borrow_mut().parent = Rc::downgrade(&right_node);
          right_children.push(node);
       }
       right_children.reverse(); // ensure they are in the proper order
 
       let mid_key = self.keys.pop().unwrap();
-      let right_node = Node {
-         children: right_children,
-         keys: right_keys,
-         order: self.order,
-         parent: self.parent.clone()
-      };
 
-      return (mid_key, right_node)
+      right_node.borrow_mut().children = right_children;
+      right_node.borrow_mut().keys = right_keys;
+      right_node.borrow_mut().parent = self.parent.clone();
+
+      (mid_key, right_node)
    }
 
    /// Return a pointer to the child node at a given index
@@ -435,10 +436,10 @@ mod tests {
          let (mid_key, right) = node.split_node();
 
          assert!(node.keys.len() >= min_key);
-         assert!(right.keys.len() >= min_key);
+         assert!(right.borrow().keys.len() >= min_key);
 
          assert_eq!(node.keys, vec![1,2]);
-         assert_eq!(right.keys, vec![4]);
+         assert_eq!(right.borrow().keys, vec![4]);
          assert_eq!(mid_key, 3);
       }
 
@@ -457,10 +458,10 @@ mod tests {
          let (mid_key, right) = node.split_node();
 
          assert!(node.keys.len() >= min_key);
-         assert!(right.keys.len() >= min_key);
+         assert!(right.borrow().keys.len() >= min_key);
 
          assert_eq!(node.keys, vec![1,2]);
-         assert_eq!(right.keys, vec![4,5]);
+         assert_eq!(right.borrow().keys, vec![4,5]);
          assert_eq!(mid_key, 3);
       }
 
@@ -480,9 +481,9 @@ mod tests {
          let (mid_key, right) = node.split_node();
 
          assert!(node.keys.len() >= min_key);
-         assert!(right.keys.len() >= min_key);
+         assert!(right.borrow().keys.len() >= min_key);
          assert_eq!(node.keys, vec![1,2, 3]);
-         assert_eq!(right.keys, vec![5, 6]);
+         assert_eq!(right.borrow().keys, vec![5, 6]);
          assert_eq!(mid_key, 4);
       }
    }

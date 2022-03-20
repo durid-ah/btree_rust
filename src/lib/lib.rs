@@ -68,7 +68,7 @@ impl BTree {
       loop {
          if !node_ref.borrow_mut().is_key_overflowing() { break; }
 
-         let (mid_key, mut right_node) = node_ref.borrow_mut().split_node();
+         let (mid_key, right_node) = node_ref.borrow_mut().split_node();
          let parent_option: Option<NodeRef> = node_ref.borrow_mut().parent.upgrade();
          let mut insert_left = false;
 
@@ -86,14 +86,14 @@ impl BTree {
 
          let mut parent_node = parent.borrow_mut();
 
-         right_node.parent = Rc::downgrade(&parent);
+         right_node.borrow_mut().parent = Rc::downgrade(&parent);
          node_ref.borrow_mut().parent = Rc::downgrade(&parent);
 
          parent_node.add_key(mid_key);
          if insert_left {
             parent_node.add_child(Rc::clone(&node_ref)); // left node
          }
-         parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
+         parent_node.add_child(right_node); // right node
          node_ref = Rc::clone(&parent)
       }
    }
