@@ -73,12 +73,16 @@ impl BTree {
 
          let (mid_key, mut right_node) = node_ref.borrow_mut().split_node();
          let parent_option: Option<NodeRef> = node_ref.borrow_mut().parent.upgrade();
+         let mut insert_left = false;
 
          let parent: NodeRef = match parent_option {
             Some(node_ref) => Rc::clone(&node_ref),
-            None => { // if we are splitting the root node instantiate a new parent
+            None => {
+               // if we are splitting the root node instantiate a new parent
                let new_parent :NodeRef = new_node_ref(self.order);
                self.root = Rc::clone(&new_parent); // set the new parent as the root
+               // if the parent is new the left node needs to be inserted
+               insert_left = true;
                new_parent
             }
          };
@@ -89,7 +93,9 @@ impl BTree {
          node_ref.borrow_mut().parent = Rc::downgrade(&parent);
 
          parent_node.add_key(mid_key);
-         parent_node.add_child(Rc::clone(&node)); // left node
+         if insert_left {
+            parent_node.add_child(Rc::clone(&node)); // left node
+         }
          parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
          node_ref = Rc::clone(&parent)
       }
@@ -211,9 +217,9 @@ mod tests {
          let root_ref = tree.root;
          let root = root_ref.borrow_mut();
 
-         assert_eq!(root.keys.len(), 1);
+         assert_eq!(root.keys.len(), 2);
          assert_eq!(root.keys[0], 2);
-         assert_eq!(root.children.len(), 2);
+         assert_eq!(root.children.len(), 3);
 
          let first_child = root.children[0].borrow();
          assert_eq!(first_child.keys[0], 1);
@@ -221,8 +227,10 @@ mod tests {
 
          let second_child = root.children[1].borrow();
          assert_eq!(second_child.keys[0], 3);
-         assert_eq!(second_child.keys[1], 4);
-         assert_eq!(second_child.keys.len(), 2);
+         assert_eq!(second_child.keys.len(), 1);
+
+         // assert_eq!(second_child.keys[1], 4);
+
       }
    }
 
