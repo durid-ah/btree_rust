@@ -62,9 +62,6 @@ impl BTree {
       return Ok(node);
    }
 
-   // TODO: Fix the duplicate left node
-   // TODO: Use Rc::ptr_eq? in the add child?
-   // TODO: Avoid insertion in the first place?
    fn split_if_full(&mut self, node: NodeRef) {
       let mut node_ref = Rc::clone(&node);
 
@@ -94,7 +91,7 @@ impl BTree {
 
          parent_node.add_key(mid_key);
          if insert_left {
-            parent_node.add_child(Rc::clone(&node)); // left node
+            parent_node.add_child(Rc::clone(&node_ref)); // left node
          }
          parent_node.add_child(Rc::new(RefCell::new(right_node))); // right node
          node_ref = Rc::clone(&parent)
@@ -229,8 +226,56 @@ mod tests {
          assert_eq!(second_child.keys[0], 3);
          assert_eq!(second_child.keys.len(), 1);
 
-         // assert_eq!(second_child.keys[1], 4);
+         let third_child = root.children[2].borrow();
+         assert_eq!(third_child.keys[0], 5);
+         assert_eq!(third_child.keys.len(), 1);
 
+      }
+
+
+      #[test]
+      fn test_out_three_levels() {
+         let mut tree = BTree::new(3);
+         let _ = tree.add(1);
+         let _ = tree.add(2);
+         let _ = tree.add(3);
+         let _ = tree.add(4);
+         let _ = tree.add(5);
+         let _ = tree.add(6);
+         let _ = tree.add(7);
+
+
+         let root_ref = tree.root;
+         let root = root_ref.borrow_mut();
+
+         assert_eq!(root.keys.len(), 1);
+         assert_eq!(root.keys[0], 4);
+         assert_eq!(root.children.len(), 2);
+
+         let first_child = root.children[0].borrow();
+         assert_eq!(first_child.keys[0], 2);
+         assert_eq!(first_child.keys.len(), 1);
+         assert_eq!(first_child.children.len(), 2);
+
+         let level_3_first_child = first_child.children[0].borrow();
+         assert_eq!(level_3_first_child.keys[0], 1);
+         assert_eq!(level_3_first_child.keys.len(), 1);
+
+         let level_3_second_child = first_child.children[1].borrow();
+         assert_eq!(level_3_second_child.keys[0], 3);
+         assert_eq!(level_3_second_child.keys.len(), 1);
+
+         let second_child = root.children[1].borrow();
+         assert_eq!(second_child.keys[0], 6);
+         assert_eq!(second_child.keys.len(), 1);
+
+         let level_3_first_child = second_child.children[0].borrow();
+         assert_eq!(level_3_first_child.keys[0], 5);
+         assert_eq!(level_3_first_child.keys.len(), 1);
+
+         let level_3_second_child = second_child.children[1].borrow();
+         assert_eq!(level_3_second_child.keys[0], 7);
+         assert_eq!(level_3_second_child.keys.len(), 1);
       }
    }
 
