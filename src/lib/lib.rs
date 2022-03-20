@@ -66,15 +66,18 @@ impl BTree {
       let mut node_ref = Rc::clone(&node);
 
       loop {
-         if !(*node_ref.borrow_mut()).is_key_overflowing() { break; }
+         if !node_ref.borrow_mut().is_key_overflowing() { break; }
 
-         let (mid_key, mut right_node) = (*node_ref.borrow_mut()).split_node();
-         let parent_option: Option<NodeRef> = (*node_ref.borrow_mut()).parent.upgrade();
+         let (mid_key, mut right_node) = node_ref.borrow_mut().split_node();
+         let parent_option: Option<NodeRef> = node_ref.borrow_mut().parent.upgrade();
 
          let parent: NodeRef = match parent_option {
             Some(node_ref) => Rc::clone(&node_ref),
             None => {
-               let new_parent :NodeRef = Rc::new(RefCell::new(Node::new(self.order)));
+               // if we are splitting the root node instantiate a new parent
+               let new_parent :NodeRef = Rc::new(
+                  RefCell::new(Node::new(self.order)));
+               // set the new parent as the root
                self.root = Rc::clone(&new_parent);
                new_parent
             }
@@ -83,7 +86,7 @@ impl BTree {
          let mut parent_node = parent.borrow_mut();
 
          right_node.parent = Rc::downgrade(&parent);
-         (*node_ref.borrow_mut()).parent = Rc::downgrade(&parent);
+         node_ref.borrow_mut().parent = Rc::downgrade(&parent);
 
          parent_node.add_key(mid_key);
          parent_node.add_child(Rc::clone(&node)); // left node
@@ -143,18 +146,84 @@ mod tests {
 
    }
 
+   mod add_key_tests {
+      use super::*;
 
-   #[test]
-   fn test_add_node() {
-      let mut tree = BTree::new(3);
-      let _ = tree.add(1);
-      let _ = tree.add(2);
-      let _ = tree.add(3);
-      let _ = tree.add(4);
+      #[test]
+      fn test_add_node() {
+         let mut tree = BTree::new(3);
+         let _ = tree.add(1);
+         let _ = tree.add(2);
+         let _ = tree.add(3);
+         let _ = tree.add(4);
 
-      let root_ref = tree.root;
-      let root = root_ref.borrow_mut();
-      assert_eq!(root.children.len(), 2);
+         let root_ref = tree.root;
+         let root = root_ref.borrow_mut();
+
+         assert_eq!(root.keys.len(), 1);
+         assert_eq!(root.keys[0], 2);
+         assert_eq!(root.children.len(), 2);
+
+         let first_child = root.children[0].borrow();
+         assert_eq!(first_child.keys[0], 1);
+         assert_eq!(first_child.keys.len(), 1);
+
+         let second_child = root.children[1].borrow();
+         assert_eq!(second_child.keys[0], 3);
+         assert_eq!(second_child.keys[1], 4);
+         assert_eq!(second_child.keys.len(), 2);
+      }
+
+      #[test]
+      fn test_out_of_order_add() {
+         let mut tree = BTree::new(3);
+         let _ = tree.add(4);
+         let _ = tree.add(2);
+         let _ = tree.add(1);
+         let _ = tree.add(3);
+
+         let root_ref = tree.root;
+         let root = root_ref.borrow_mut();
+
+         assert_eq!(root.keys.len(), 1);
+         assert_eq!(root.keys[0], 2);
+         assert_eq!(root.children.len(), 2);
+
+         let first_child = root.children[0].borrow();
+         assert_eq!(first_child.keys[0], 1);
+         assert_eq!(first_child.keys.len(), 1);
+
+         let second_child = root.children[1].borrow();
+         assert_eq!(second_child.keys[0], 3);
+         assert_eq!(second_child.keys[1], 4);
+         assert_eq!(second_child.keys.len(), 2);
+      }
+
+      #[test]
+      fn test_out_two_splits() {
+         let mut tree = BTree::new(3);
+         let _ = tree.add(4);
+         let _ = tree.add(2);
+         let _ = tree.add(1);
+         let _ = tree.add(3);
+         let _ = tree.add(5);
+
+         let root_ref = tree.root;
+         let root = root_ref.borrow_mut();
+
+         assert_eq!(root.keys.len(), 1);
+         assert_eq!(root.keys[0], 2);
+         assert_eq!(root.children.len(), 2);
+
+         let first_child = root.children[0].borrow();
+         assert_eq!(first_child.keys[0], 1);
+         assert_eq!(first_child.keys.len(), 1);
+
+         let second_child = root.children[1].borrow();
+         assert_eq!(second_child.keys[0], 3);
+         assert_eq!(second_child.keys[1], 4);
+         assert_eq!(second_child.keys.len(), 2);
+      }
    }
 
 

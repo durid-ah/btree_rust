@@ -6,5 +6,7 @@ fn main() {
     let _ = t.add(2);
     let _ = t.add(3);
     let _ = t.add(4);
+    let _ = t.add(5);
+    
     println!("Hello, world!");
 }

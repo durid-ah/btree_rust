@@ -50,17 +50,20 @@ impl Node {
       }
    }
 
+   /// Insert child node and put it into the proper order
    pub fn add_child(&mut self, child: NodeRef) {
       self.children.push(child);
 
       let mut new_child_idx = self.children.len() - 1;
+      // if the new child is in the first position there is no need for ordering
       if new_child_idx == 0 { return; }
 
       let mut current_idx = new_child_idx - 1;
 
       loop {
-         let current_val= (*self.children[current_idx].borrow_mut()).get_max_key();
-         let new_child_val = (*self.children[new_child_idx].borrow()).get_min_key();
+
+         let current_val= self.children[current_idx].borrow().get_max_key();
+         let new_child_val = self.children[new_child_idx].borrow().get_min_key();
 
          if new_child_val > current_val { // if the value is in the right spot end the loop
             break;
