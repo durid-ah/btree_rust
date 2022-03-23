@@ -1,36 +1,13 @@
 use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
+use node_utils::{calculate_mid, new_node_ref};
+use search_status::SearchStatus;
 
-// TODO: Start some file splitting
-pub(crate) enum SearchStatus {
-   Found(usize), // contains the key's index
-   NotFound(usize) // contains the potential index location
-}
-
-impl SearchStatus {
-   pub fn is_found(&self) -> bool {
-      match self {
-         SearchStatus::Found(_) =>  true,
-         SearchStatus::NotFound(_) => false
-      }
-   }
-
-   pub fn unwrap(&self) -> usize {
-      match self {
-         SearchStatus::Found(val) | SearchStatus::NotFound(val) =>  *val
-      }
-   }
-}
+pub(crate) mod node_utils;
+pub(crate) mod search_status;
 
 pub(crate) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
-
-// Utilities:
-fn calculate_mid(start: isize, end: isize) -> isize { ((end - start) / 2) + start }
-
-pub(crate) fn new_node_ref(order: usize) -> NodeRef {
-   Rc::new(RefCell::new(Node::new(order)))
-}
 
 /// # Node Rules:
 /// * Max number of keys (order - 1)
@@ -103,6 +80,7 @@ impl Node {
    }
 
    // TODO: Review in cleanup phase
+   // TODO: Update documentation
    /// Find the index where the new key would reside or an error with the
    /// index where it already exists
    ///

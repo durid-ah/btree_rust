@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::{Rc};
-use node::{Node, NodeRef, new_node_ref};
+use node::{Node, NodeRef, node_utils::new_node_ref};
 
 mod node;
 
