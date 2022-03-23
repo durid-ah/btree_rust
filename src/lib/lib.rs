@@ -42,6 +42,7 @@ impl BTree {
 
    // use the delete method as the controller over the
    pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
+
       // find the node with key to delete (node and index?)
       // * check if it has any children
       //    - if it does not look if I need to merge with left or right
@@ -62,8 +63,8 @@ impl BTree {
 
       loop {
          let res = (*node.borrow_mut())
-            .find_future_key_index(value);
-         if res.is_err() { return Err(BTreeError::ValueAlreadyExists); }
+            .find_key_index(value);
+         if res.is_found() { return Err(BTreeError::ValueAlreadyExists); }
 
          let child_idx = res.unwrap();
          let node_option = (*node.borrow_mut())

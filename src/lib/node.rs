@@ -1,6 +1,27 @@
 use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
 
+// TODO: Start some file splitting
+pub(crate) enum SearchStatus {
+   Found(usize), // contains the key's index
+   NotFound(usize) // contains the potential index location
+}
+
+impl SearchStatus {
+   pub fn is_found(&self) -> bool {
+      match self {
+         SearchStatus::Found(_) =>  true,
+         SearchStatus::NotFound(_) => false
+      }
+   }
+
+   pub fn unwrap(&self) -> usize {
+      match self {
+         SearchStatus::Found(val) | SearchStatus::NotFound(val) =>  *val
+      }
+   }
+}
+
 pub(crate) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
 
@@ -81,33 +102,6 @@ impl Node {
       }
    }
 
-   /// Return index of the key if found or Option::None otherwise
-   pub fn find_key(&self, key: usize) -> Option<usize> {
-      if self.keys.len() == 0 {
-         return Option::None;
-      }
-
-      let mut start = 0 as isize;
-      let mut end = (self.keys.len() - 1) as isize;
-
-      while end >= start {
-         let mid: isize = calculate_mid(start, end);
-         let mid_idx = mid as usize;
-
-         if self.keys[mid_idx] == key {
-            return Option::Some(mid_idx);
-         }
-
-         if self.keys[mid_idx] > key {
-            end = mid - 1;
-         } else {
-            start = mid + 1;
-         }
-      }
-
-      return Option::None;
-   }
-
    // TODO: Review in cleanup phase
    /// Find the index where the new key would reside or an error with the
    /// index where it already exists
@@ -115,10 +109,8 @@ impl Node {
    /// # Returns
    /// Ok(i: usize) => where `i` is the index location
    /// Err((i:usize, err:String)) => a tuple where `i` is the existing location and err is the message
-   pub fn find_future_key_index(&self, key: usize) -> Result<usize, (usize, String)> {
-      if self.keys.len() == 0 {
-         return Ok(0);
-      }
+   pub fn find_key_index(&self, key: usize) -> SearchStatus {
+      if self.keys.len() == 0 { return SearchStatus::NotFound(0); }
 
       let mut start = 0 as isize;
       let key_length = self.keys.len();
@@ -129,16 +121,16 @@ impl Node {
          let mid_idx = mid as usize;
 
          if self.keys[mid_idx] == key {
-            return Err((mid_idx, format!("value already exists at {}", mid_idx)))
+            return SearchStatus::Found(mid_idx)
          }
          else if mid_idx == 0 && self.keys[mid_idx] > key {
-            return Ok(mid_idx)
+            return SearchStatus::NotFound(mid_idx)
          }
          else if mid_idx == (key_length - 1) && self.keys[mid_idx] < key {
-            return Ok(mid_idx + 1)
+            return SearchStatus::NotFound(mid_idx + 1)
          }
          else if self.keys[mid_idx] > key && self.keys[mid_idx - 1] < key {
-            return Ok(mid_idx);
+            return SearchStatus::NotFound(mid_idx);
          }
 
          if self.keys[mid_idx] > key {
@@ -214,7 +206,7 @@ impl Node {
       self.get_key(max_index)
    }
 
-   pub fn has_children(&self) -> bool { self.children != 0 }
+   pub fn has_children(&self) -> bool { self.children.len() != 0 }
 }
 
 #[cfg(test)]
@@ -232,12 +224,12 @@ mod tests {
          let mut node = Node::new(5);
          node.keys.push(5);
 
-         let res = node.find_key(5);
-         assert!(res.is_some());
+         let res = node.find_key_index(5);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 0);
 
-         let res = node.find_key(3);
-         assert!(res.is_none());
+         let res = node.find_key_index(3);
+         assert!(!res.is_found());
       }
 
       #[test]
@@ -246,22 +238,22 @@ mod tests {
          node.keys.push(5);
          node.keys.push(7);
 
-         let res = node.find_key(5);
-         assert!(res.is_some());
+         let res = node.find_key_index(5);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 0);
 
-         let res = node.find_key(7);
-         assert!(res.is_some());
+         let res = node.find_key_index(7);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 1);
 
-         let res = node.find_key(3);
-         assert!(res.is_none());
+         let res = node.find_key_index(3);
+         assert!(!res.is_found());
 
-         let res = node.find_key(6);
-         assert!(res.is_none());
+         let res = node.find_key_index(6);
+         assert!(!res.is_found());
 
-         let res = node.find_key(8);
-         assert!(res.is_none());
+         let res = node.find_key_index(8);
+         assert!(!res.is_found());
       }
 
       #[test]
@@ -269,29 +261,29 @@ mod tests {
          let mut node = Node::new(8);
          node.keys = vec![5,7,9];
 
-         let res = node.find_key(5);
-         assert!(res.is_some());
+         let res = node.find_key_index(5);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 0);
 
-         let res = node.find_key(7);
-         assert!(res.is_some());
+         let res = node.find_key_index(7);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 1);
 
-         let res = node.find_key(9);
-         assert!(res.is_some());
+         let res = node.find_key_index(9);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 2);
 
-         let res = node.find_key(3);
-         assert!(res.is_none());
+         let res = node.find_key_index(3);
+         assert!(!res.is_found());
 
-         let res = node.find_key(6);
-         assert!(res.is_none());
+         let res = node.find_key_index(6);
+         assert!(!res.is_found());
 
-         let res = node.find_key(8);
-         assert!(res.is_none());
+         let res = node.find_key_index(8);
+         assert!(!res.is_found());
 
-         let res = node.find_key(10);
-         assert!(res.is_none());
+         let res = node.find_key_index(10);
+         assert!(!res.is_found());
       }
 
       #[test]
@@ -299,41 +291,42 @@ mod tests {
          let mut node = Node::new(8);
          node.keys = vec![5,7,9,11];
 
-         let res = node.find_key(5);
-         assert!(res.is_some());
+         let res = node.find_key_index(5);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 0);
 
-         let res = node.find_key(7);
-         assert!(res.is_some());
+         let res = node.find_key_index(7);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 1);
 
-         let res = node.find_key(9);
-         assert!(res.is_some());
+         let res = node.find_key_index(9);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 2);
 
-         let res = node.find_key(11);
-         assert!(res.is_some());
+         let res = node.find_key_index(11);
+         assert!(res.is_found());
          assert_eq!(res.unwrap(), 3);
 
-         let res = node.find_key(3);
-         assert!(res.is_none());
+         let res = node.find_key_index(3);
+         assert!(!res.is_found());
 
-         let res = node.find_key(6);
-         assert!(res.is_none());
+         let res = node.find_key_index(6);
+         assert!(!res.is_found());
 
-         let res = node.find_key(8);
-         assert!(res.is_none());
+         let res = node.find_key_index(8);
+         assert!(!res.is_found());
 
-         let res = node.find_key(10);
-         assert!(res.is_none());
+         let res = node.find_key_index(10);
+         assert!(!res.is_found());
 
-         let res = node.find_key(12);
-         assert!(res.is_none());
+         let res = node.find_key_index(12);
+         assert!(!res.is_found());
       }
 
    }
 
    mod find_location_tests {
+      use crate::node::SearchStatus;
       use super::*;
 
       #[test]
@@ -341,29 +334,29 @@ mod tests {
          let mut node = Node::new(5);
          node.keys = vec![5, 10, 15, 20];
 
-         match node.find_future_key_index(3) {
-            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(3) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(8) {
-            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(8) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(11) {
-            Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(11) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(18) {
-            Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(18) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(25) {
-            Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(25) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
       }
 
@@ -372,34 +365,34 @@ mod tests {
          let mut node = Node::new(5);
          node.keys = vec![5, 10, 15, 20, 25];
 
-         match node.find_future_key_index(3) {
-            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(3) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(8) {
-            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(8) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(11) {
-            Ok(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(11) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 2, "Value must be 2 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(18) {
-            Ok(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(18) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 3, "Value must be 3 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(23) {
-            Ok(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(23) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 4, "Value must be 4 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(26) {
-            Ok(index) => assert_eq!(index, 5, "Value must be 5 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(26) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 5, "Value must be 5 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
       }
 
@@ -408,14 +401,14 @@ mod tests {
          let mut node = Node::new(5);
          node.keys = vec![5];
 
-         match node.find_future_key_index(3) {
-            Ok(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(3) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 0, "Value must be 0 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
 
-         match node.find_future_key_index(8) {
-            Ok(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
-            Err(_) => assert!(false, "Value")
+         match node.find_key_index(8) {
+            SearchStatus::NotFound(index) => assert_eq!(index, 1, "Value must be 1 instead got {}", index),
+            SearchStatus::Found(_) => assert!(false, "Value")
          }
       }
    }
