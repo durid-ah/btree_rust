@@ -65,7 +65,6 @@ impl Node {
       let mut current_idx = new_child_idx - 1;
 
       loop {
-
          let current_val= self.children[current_idx].borrow().get_max_key();
          let new_child_val = self.children[new_child_idx].borrow().get_min_key();
 
@@ -214,6 +213,8 @@ impl Node {
       let max_index = self.keys.len() - 1;
       self.get_key(max_index)
    }
+
+   pub fn has_children(&self) -> bool { self.children != 0 }
 }
 
 #[cfg(test)]
