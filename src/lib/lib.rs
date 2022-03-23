@@ -40,6 +40,22 @@ impl BTree {
       return Ok(());
    }
 
+   // use the delete method as the controller over the
+   pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
+      // find the node with key to delete (node and index?)
+      // * check if it has any children
+      //    - if it does not look if I need to merge with left or right
+      //    by pulling down the parent and pushing upwards from the left or right child
+      //    - if neither are available push key and pull parent into left or right child
+      // * if it does have children
+      //    - bring up the left or right child key
+      //    - if both left and right have minimum merge them together
+      //    and if the node with deleted node still has minimum keys
+      //    bring up left or right
+      // * if deletion affects height use parent and sibling to merge nodes together
+      Err(BTreeError::ValueAlreadyExists)
+   }
+
    /// Get the node were you would insert the desired value
    fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, BTreeError> {
       let mut node: NodeRef = Rc::clone(&self.root);
@@ -94,7 +110,7 @@ impl BTree {
             parent_node.add_child(Rc::clone(&node_ref)); // left node
          }
          parent_node.add_child(right_node); // right node
-         node_ref = Rc::clone(&parent)
+         node_ref = Rc::clone(&parent);
       }
    }
 }
@@ -232,7 +248,6 @@ mod tests {
 
       }
 
-
       #[test]
       fn test_out_three_levels() {
          let mut tree = BTree::new(3);
@@ -278,6 +293,4 @@ mod tests {
          assert_eq!(level_3_second_child.keys.len(), 1);
       }
    }
-
-
 }
