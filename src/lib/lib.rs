@@ -42,6 +42,10 @@ impl BTree {
 
    // use the delete method as the controller over the
    pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
+      let node_to_delete = self.find_insert_node(value);
+
+      if node_to_delete.is_err() { return Ok(()); } // TODO: Replace stubs
+
 
       // find the node with key to delete (node and index?)
       // * check if it has any children
@@ -58,6 +62,7 @@ impl BTree {
    }
 
    /// Get the node were you would insert the desired value
+   /// TODO: Refactor into find and find_insert
    fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, BTreeError> {
       let mut node: NodeRef = Rc::clone(&self.root);
 
