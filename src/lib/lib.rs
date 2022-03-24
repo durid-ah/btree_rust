@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 use std::rc::{Rc};
 use node::{Node, NodeRef, node_utils::new_node_ref};
+use crate::BTreeError::ValueAlreadyExists;
+use crate::node::search_status::SearchStatus;
 
 mod node;
 
@@ -40,18 +42,29 @@ impl BTree {
       return Ok(());
    }
 
+   fn delete_leaf(node: NodeRef, key_index: usize) {
+      if node.borrow().has_min_key_count() {
+         //    - if it does not look if I need to merge with left or right
+         //    by pulling down the parent and pushing upwards from the left or right child
+         //    - if neither are available push key and pull parent into left or right child
+      } else {
+         node.borrow_mut().keys.remove(key_index);
+      }
+   }
+
    // use the delete method as the controller over the
    pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
-      let node_to_delete = self.find_insert_node(value);
+      let (status, node_to_delete) = self.find(value);
 
-      if node_to_delete.is_err() { return Ok(()); } // TODO: Replace stubs
+      if !status.is_found() { return Ok(()); }
 
-
+      if node_to_delete.borrow().has_children() {
+         BTree::delete_leaf(node_to_delete, status.unwrap());
+         return  Ok(())
+      }
       // find the node with key to delete (node and index?)
       // * check if it has any children
-      //    - if it does not look if I need to merge with left or right
-      //    by pulling down the parent and pushing upwards from the left or right child
-      //    - if neither are available push key and pull parent into left or right child
+      //
       // * if it does have children
       //    - bring up the left or right child key
       //    - if both left and right have minimum merge them together
@@ -61,18 +74,14 @@ impl BTree {
       Err(BTreeError::ValueAlreadyExists)
    }
 
-   /// Get the node were you would insert the desired value
-   /// TODO: Refactor into find and find_insert
-   fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, BTreeError> {
+   fn find(&mut self, value: usize) -> (SearchStatus, NodeRef) {
       let mut node: NodeRef = Rc::clone(&self.root);
-
+      let res = node.borrow_mut().find_key_index(value);
       loop {
-         let res = (*node.borrow_mut())
-            .find_key_index(value);
-         if res.is_found() { return Err(BTreeError::ValueAlreadyExists); }
+         if res.is_found() { return (res, node); }
 
          let child_idx = res.unwrap();
-         let node_option = (*node.borrow_mut())
+         let node_option = node.borrow_mut()
             .get_child(child_idx);
 
          match node_option {
@@ -81,7 +90,16 @@ impl BTree {
          }
       }
 
-      return Ok(node);
+      return  (res, node)
+   }
+
+   /// Get the node were you would insert the desired value
+   fn find_insert_node(&mut self, value: usize) -> Result<NodeRef, BTreeError> {
+      let (status, insert_node) = self.find(value);
+
+      if status.is_found() { return  Err(ValueAlreadyExists) }
+
+      return Ok(insert_node);
    }
 
    fn split_if_full(&mut self, node: NodeRef) {

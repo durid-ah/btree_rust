@@ -184,6 +184,12 @@ impl Node {
       self.get_key(max_index)
    }
 
+   pub fn has_min_key_count(&self) -> bool {
+      let half_order = (self.order as f32 / 2 as f32).ceil() as usize;
+      let min_count = half_order - 1;
+      self.keys.len() <= min_count
+   }
+
    pub fn has_children(&self) -> bool { self.children.len() != 0 }
 }
 
