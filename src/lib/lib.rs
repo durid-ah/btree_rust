@@ -44,9 +44,14 @@ impl BTree {
 
    fn delete_leaf(node: NodeRef, key_index: usize) {
       if node.borrow().has_min_key_count() {
-         //    - if it does not look if I need to merge with left or right
-         //    by pulling down the parent and pushing upwards from the left or right child
-         //    - if neither are available push key and pull parent into left or right child
+         // TODO:
+         //    - Rotate: If the left or right have more than min push their key to parent and
+         //    pull down the parent
+         //    - If both left and right have min keys pull parent and merge with left
+
+         // TODO: If the node becomes empty
+         //    - merging will just pull in the left and parent key
+         //    - grabbing from left or right will refill it
       } else {
          node.borrow_mut().keys.remove(key_index);
       }
