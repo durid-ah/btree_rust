@@ -18,10 +18,7 @@ pub struct BTree {
 
 impl BTree {
    pub fn new(order: usize) -> Self {
-      return Self {
-         root: new_node_ref(order),
-         order
-      }
+      Self { root: new_node_ref(order), order }
    }
 
    /// Add a value into the tree or return an error if the value already exists

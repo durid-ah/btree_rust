@@ -16,6 +16,7 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 #[derive(Debug)]
 pub(crate) struct Node {
    pub parent : WeakNodeRef,
+   pub index_in_parent: Option<usize>,
    pub keys: Vec<usize>,
 
    pub children: Vec<NodeRef>,
@@ -24,9 +25,9 @@ pub(crate) struct Node {
 
 impl Node {
    pub fn new(order: usize) -> Self {
-
       return Self {
          parent: Weak::new(),
+         index_in_parent: Option::None,
          keys: Vec::with_capacity(order - 1),
          children: Vec::with_capacity(order),
          order
@@ -57,6 +58,8 @@ impl Node {
       self.children.push(child);
 
       let mut new_child_idx = self.children.len() - 1;
+      self.children[new_child_idx].borrow_mut().index_in_parent = Some(new_child_idx);
+
       // if the new child is in the first position there is no need for ordering
       if new_child_idx == 0 { return; }
 
@@ -70,6 +73,8 @@ impl Node {
             break;
          }
 
+         self.children[new_child_idx].borrow_mut().index_in_parent = Some(current_idx);
+         self.children[current_idx].borrow_mut().index_in_parent = Some(new_child_idx);
          self.children.swap(new_child_idx, current_idx);
 
          if current_idx > 0 {
@@ -493,7 +498,10 @@ mod tests {
          let second = parent.get_child(1).unwrap();
 
          assert_eq!(first.borrow_mut().get_key(0), 1);
+         assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
          assert_eq!(second.borrow_mut().get_key(0), 2);
+         assert_eq!(second.borrow_mut().index_in_parent.unwrap(), 1);
+
       }
 
       #[test]
@@ -508,7 +516,10 @@ mod tests {
          let second = parent.get_child(1).unwrap();
 
          assert_eq!(first.borrow_mut().get_key(0), 1);
+         assert_eq!(first.borrow_mut().get_key(0), 1);
+         assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
          assert_eq!(second.borrow_mut().get_key(0), 2);
+         assert_eq!(second.borrow_mut().index_in_parent.unwrap(), 1);
       }
    }
 }
