@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, RefMut};
 use std::rc::{Rc};
 use node::{Node, NodeRef, node_utils::new_node_ref};
 use crate::BTreeError::ValueAlreadyExists;
@@ -39,11 +39,30 @@ impl BTree {
       return Ok(());
    }
 
-   fn delete_leaf(node: NodeRef, key_index: usize) {
-      if node.borrow().has_min_key_count() {
+   // TODO: Refactor the get left or right sibling options
+   fn delete_leaf(node:&mut NodeRef, key_index: usize) {
+      let mut current_node = node.borrow_mut();
+
+      if current_node.has_min_key_count() { // rotation cases
+         let parent_weak = current_node.parent.upgrade().unwrap();
+         let mut parent = parent_weak.borrow_mut();
+
          // TODO:
          //    - Rotate: If the left or right have more than min push their key to parent and
          //    pull down the parent
+         let left_sibling :Option<NodeRef> = parent.children
+            .get(current_node.index_in_parent.unwrap())
+            .map(|sibling| Rc::clone(sibling));
+
+         match left_sibling {
+            Some(sibling) if sibling.borrow_mut().has_min_key_count() => {
+               let mut sibling_ref = sibling.borrow_mut();
+               BTree::rotate_from_left(&mut sibling_ref, &mut parent, &mut current_node);
+            },
+            _ => ()
+         }
+
+         // TODO:
          //    - If both left and right have min keys pull parent and merge with left
 
          // TODO: If the node becomes empty
@@ -54,25 +73,35 @@ impl BTree {
       }
    }
 
+   fn rotate_from_left(
+      // TODO: Figure out the encapsulation for the key vectors
+      left: &mut RefMut<Node>, parent: &mut RefMut<Node>, rotated_to: &mut RefMut<Node>) {
+      let left_key = left.keys.pop().unwrap();
+      let parent_key_to_rotate = parent.keys.remove(rotated_to.index_in_parent.unwrap());
+      parent.add_key(left_key);
+      rotated_to.add_key(parent_key_to_rotate);
+   }
+
    // use the delete method as the controller over the
    pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
-      let (status, node_to_delete) = self.find(value);
+      let (status, mut node_to_delete) = self.find(value);
 
       if !status.is_found() { return Ok(()); }
 
-      if node_to_delete.borrow().has_children() {
-         BTree::delete_leaf(node_to_delete, status.unwrap());
+      if !node_to_delete.borrow_mut().has_children() { // Leaf Node Cases
+         BTree::delete_leaf( &mut node_to_delete, status.unwrap());
          return  Ok(())
       }
-      // find the node with key to delete (node and index?)
-      // * check if it has any children
-      //
-      // * if it does have children
-      //    - bring up the left or right child key
-      //    - if both left and right have minimum merge them together
-      //    and if the node with deleted node still has minimum keys
-      //    bring up left or right
-      // * if deletion affects height use parent and sibling to merge nodes together
+
+      // TODO:
+      //    find the node with key to delete (node and index?)
+      //    * check if it has any children
+      //    * if it does have children
+      //       - bring up the left or right child key
+      //       - if both left and right have minimum merge them together
+      //       and if the node with deleted node still has minimum keys
+      //       bring up left or right
+      //    * if deletion affects height use parent and sibling to merge nodes together
       Err(BTreeError::ValueAlreadyExists)
    }
 
