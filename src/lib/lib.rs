@@ -40,6 +40,12 @@ impl BTree {
    }
 
    // TODO: Refactor the get left or right sibling options
+   // TODO: Change to delete first and then re-balance?
+   //    - Delete then check if
+   //       * Node has more than min -> return
+   //       * Node is empty -> merge neighbors
+   //       * Node is not empty but has less than min
+   // TODO: Fix usize indexing to avoid panics (make a try_get?)
    fn delete_leaf(node:&mut NodeRef, key_index: usize) {
       let mut current_node = node.borrow_mut();
 
@@ -51,10 +57,22 @@ impl BTree {
          //    - Rotate: If the left or right have more than min push their key to parent and
          //    pull down the parent
          let left_sibling :Option<NodeRef> = parent.children
-            .get(current_node.index_in_parent.unwrap())
+            .get(current_node.index_in_parent.unwrap() - 1)
             .map(|sibling| Rc::clone(sibling));
 
          match left_sibling {
+            Some(sibling) if sibling.borrow_mut().has_min_key_count() => {
+               let mut sibling_ref = sibling.borrow_mut();
+               BTree::rotate_from_left(&mut sibling_ref, &mut parent, &mut current_node);
+            },
+            _ => ()
+         }
+
+         let right_sibling :Option<NodeRef> = parent.children
+            .get(current_node.index_in_parent.unwrap())
+            .map(|sibling| Rc::clone(sibling));
+
+         match right_sibling {
             Some(sibling) if sibling.borrow_mut().has_min_key_count() => {
                let mut sibling_ref = sibling.borrow_mut();
                BTree::rotate_from_left(&mut sibling_ref, &mut parent, &mut current_node);
