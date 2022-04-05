@@ -5,7 +5,7 @@ use search_status::SearchStatus;
 
 pub(crate) mod node_utils;
 pub(crate) mod search_status;
-pub(crate) mod child_operations;
+pub(crate) mod node_child_operations;
 
 pub(crate) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;
