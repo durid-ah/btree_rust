@@ -20,7 +20,8 @@ pub(crate) struct Node {
    pub keys: Vec<usize>,
 
    pub children: Vec<NodeRef>,
-   order: usize
+   order: usize,
+   min_keys: usize
 }
 
 impl Node {
@@ -30,6 +31,7 @@ impl Node {
          index_in_parent: Option::None,
          keys: Vec::with_capacity(order - 1),
          children: Vec::with_capacity(order),
+         min_keys: (order as f32 / 2 as f32).ceil() as usize - 1,
          order
       }
    }
@@ -53,45 +55,12 @@ impl Node {
       }
    }
 
-   /// Insert child node and put it into the proper order
-   pub fn add_child(&mut self, child: NodeRef) {
-      self.children.push(child);
-
-      let mut new_child_idx = self.children.len() - 1;
-      self.children[new_child_idx].borrow_mut().index_in_parent = Some(new_child_idx);
-
-      // if the new child is in the first position there is no need for ordering
-      if new_child_idx == 0 { return; }
-
-      let mut current_idx = new_child_idx - 1;
-
-      loop {
-         let current_val= self.children[current_idx].borrow().get_max_key();
-         let new_child_val = self.children[new_child_idx].borrow().get_min_key();
-
-         if new_child_val > current_val { // if the value is in the right spot end the loop
-            break;
-         }
-
-         self.children[new_child_idx].borrow_mut().index_in_parent = Some(current_idx);
-         self.children[current_idx].borrow_mut().index_in_parent = Some(new_child_idx);
-         self.children.swap(new_child_idx, current_idx);
-
-         if current_idx > 0 {
-            new_child_idx = current_idx;
-            current_idx -= 1;
-         }
-      }
-   }
-
-   // TODO: Review in cleanup phase
-   // TODO: Update documentation
-   /// Find the index where the new key would reside or an error with the
-   /// index where it already exists
+   /// Find the index where the new key would reside or the place where it
+   /// already exists
    ///
    /// # Returns
-   /// Ok(i: usize) => where `i` is the index location
-   /// Err((i:usize, err:String)) => a tuple where `i` is the existing location and err is the message
+   /// Found(i: usize) => The value exists and `i` is the index location
+   /// NotFound(i:usize) => The value does not exist and `i` is where the item should be
    pub fn find_key_index(&self, key: usize) -> SearchStatus {
       if self.keys.len() == 0 { return SearchStatus::NotFound(0); }
 
@@ -166,42 +135,100 @@ impl Node {
       (mid_key, right_node)
    }
 
-   /// Return a pointer to the child node at a given index
+   /// Insert child node and put it into the proper order
+   pub fn add_child(&mut self, child: NodeRef) {
+      self.children.push(child);
+
+      let mut new_child_idx = self.children.len() - 1;
+      self.children[new_child_idx].borrow_mut().index_in_parent = Some(new_child_idx);
+
+      // if the new child is in the first position there is no need for ordering
+      if new_child_idx == 0 { return; }
+
+      let mut current_idx = new_child_idx - 1;
+
+      loop {
+         let current_val= self.children[current_idx].borrow().get_max_key();
+         let new_child_val = self.children[new_child_idx].borrow().get_min_key();
+
+         if new_child_val > current_val { // if the value is in the right spot end the loop
+            break;
+         }
+
+         self.children[new_child_idx].borrow_mut().index_in_parent = Some(current_idx);
+         self.children[current_idx].borrow_mut().index_in_parent = Some(new_child_idx);
+         self.children.swap(new_child_idx, current_idx);
+
+         if current_idx > 0 {
+            new_child_idx = current_idx;
+            current_idx -= 1;
+         }
+      }
+   }
+
+   /// Remove the child at the specified index and update the
+   /// indices of the children to the left
+   pub fn remove_child(&mut self, index: usize) {
+      self.children.remove(index);
+      for idx in index..self.children.len() {
+         self.children[idx].borrow_mut().index_in_parent = Some(idx);
+      }
+   }
+
+   /// Return a cloned pointer to the child node at a given index
    pub fn try_clone_child(&self, index: isize) -> Option<NodeRef> {
       if self.children.len() == 0 || index < 0 {
          return Option::None;
       }
 
-      let index = index as usize;
-      return Some(Rc::clone(&self.children[index]));
+      return Some(Rc::clone(&self.children[index as usize]));
+   }
+
+   /// Return a cloned pointer to the sibling at the left
+   pub fn try_clone_left_sibling(&self) -> Option<NodeRef> {
+      let left_node_idx = (self.index_in_parent.unwrap() as isize)  - 1;
+      let parent_ref = self.parent.upgrade();
+
+      if parent_ref.is_none() { return Option::None }
+
+      parent_ref.unwrap().borrow_mut()
+         .try_clone_child(left_node_idx)
+         .map(|left_ref| Rc::clone(&left_ref))
+   }
+
+   /// Return a cloned pointer to the sibling at the right
+   pub fn try_clone_right_sibling(&self) -> Option<NodeRef> {
+      let right_node_idx = (self.index_in_parent.unwrap() as isize)  + 1;
+      let parent_ref = self.parent.upgrade();
+
+      if parent_ref.is_none() { return Option::None }
+
+      parent_ref.unwrap().borrow_mut()
+         .try_clone_child(right_node_idx)
+         .map(|right_ref| Rc::clone(&right_ref))
    }
 
    /// Shows if the key container is over capacity and ready for a split
    pub fn is_key_overflowing(&self) -> bool { self.keys.len() > self.order - 1 }
 
-   fn get_key(&self, index: usize) -> usize {
-      self.keys[index]
-   }
+   fn get_key(&self, index: usize) -> usize { self.keys[index] }
 
    fn get_min_key(&self) -> usize { return self.get_key(0); }
 
    fn get_max_key(&self) -> usize {
-      let max_index = self.keys.len() - 1;
-      self.get_key(max_index)
+      self.get_key(self.keys.len() - 1)
    }
 
-   pub fn is_empty(&self) -> bool { self.keys.len() == 0 }
-
    pub fn has_min_key_count(&self) -> bool {
-      let half_order = (self.order as f32 / 2 as f32).ceil() as usize;
-      let min_count = half_order - 1;
-      self.keys.len() == min_count
+      self.keys.len() == self.min_keys
    }
 
    pub fn has_less_than_min_keys(&self) -> bool {
-      let half_order = (self.order as f32 / 2 as f32).ceil() as usize;
-      let min_count = half_order - 1;
-      self.keys.len() < min_count
+      self.keys.len() < self.min_keys
+   }
+
+   pub fn has_more_than_min_keys(&self) -> bool {
+      self.keys.len() > self.min_keys
    }
 
    pub fn has_children(&self) -> bool { self.children.len() != 0 }
