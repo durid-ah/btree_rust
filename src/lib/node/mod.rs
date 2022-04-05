@@ -163,14 +163,6 @@ impl Node {
    /// Shows if the key container is over capacity and ready for a split
    pub fn is_key_overflowing(&self) -> bool { self.keys.len() > self.order - 1 }
 
-   fn get_key(&self, index: usize) -> usize { self.keys[index] }
-
-   fn get_min_key(&self) -> usize { return self.get_key(0); }
-
-   fn get_max_key(&self) -> usize {
-      self.get_key(self.keys.len() - 1)
-   }
-
    pub fn has_min_key_count(&self) -> bool {
       self.keys.len() == self.min_keys
    }
@@ -180,6 +172,15 @@ impl Node {
    }
 
    pub fn is_leaf(&self) -> bool { self.children.len() != 0 }
+
+   fn get_key(&self, index: usize) -> usize { self.keys[index] }
+
+   fn get_min_key(&self) -> usize { return self.get_key(0); }
+
+   fn get_max_key(&self) -> usize {
+      self.get_key(self.keys.len() - 1)
+   }
+
 }
 
 #[cfg(test)]
