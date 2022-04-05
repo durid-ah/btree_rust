@@ -149,7 +149,6 @@ impl BTree {
       parent.remove_child(moved_to.index_in_parent.unwrap());
    }
 
-   // use the delete method as the controller over the
    pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
       let (status, mut node_to_delete) = self.find(value);
 
@@ -161,8 +160,6 @@ impl BTree {
       }
 
       // TODO:
-      //    find the node with key to delete (node and index?)
-      //    * check if it has any children
       //    * if it does have children
       //       - bring up the left or right child key
       //       - if both left and right have minimum merge them together
