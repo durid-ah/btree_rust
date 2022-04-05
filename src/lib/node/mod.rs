@@ -167,11 +167,12 @@ impl Node {
    }
 
    /// Return a pointer to the child node at a given index
-   pub fn get_child(&self, index: usize) -> Option<NodeRef> {
-      if self.children.len() == 0 {
+   pub fn try_clone_child(&self, index: isize) -> Option<NodeRef> {
+      if self.children.len() == 0 || index < 0 {
          return Option::None;
       }
 
+      let index = index as usize;
       return Some(Rc::clone(&self.children[index]));
    }
 
@@ -189,10 +190,18 @@ impl Node {
       self.get_key(max_index)
    }
 
+   pub fn is_empty(&self) -> bool { self.keys.len() == 0 }
+
    pub fn has_min_key_count(&self) -> bool {
       let half_order = (self.order as f32 / 2 as f32).ceil() as usize;
       let min_count = half_order - 1;
-      self.keys.len() <= min_count
+      self.keys.len() == min_count
+   }
+
+   pub fn has_less_than_min_keys(&self) -> bool {
+      let half_order = (self.order as f32 / 2 as f32).ceil() as usize;
+      let min_count = half_order - 1;
+      self.keys.len() < min_count
    }
 
    pub fn has_children(&self) -> bool { self.children.len() != 0 }
@@ -494,8 +503,8 @@ mod tests {
          parent.add_child(first_child);
          parent.add_child(second_child);
 
-         let first = parent.get_child(0).unwrap();
-         let second = parent.get_child(1).unwrap();
+         let first = parent.try_clone_child(0).unwrap();
+         let second = parent.try_clone_child(1).unwrap();
 
          assert_eq!(first.borrow_mut().get_key(0), 1);
          assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
@@ -512,8 +521,8 @@ mod tests {
          parent.add_child(second_child);
          parent.add_child(first_child);
 
-         let first = parent.get_child(0).unwrap();
-         let second = parent.get_child(1).unwrap();
+         let first = parent.try_clone_child(0).unwrap();
+         let second = parent.try_clone_child(1).unwrap();
 
          assert_eq!(first.borrow_mut().get_key(0), 1);
          assert_eq!(first.borrow_mut().get_key(0), 1);

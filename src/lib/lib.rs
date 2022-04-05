@@ -43,61 +43,78 @@ impl BTree {
    // TODO: Change to delete first and then re-balance?
    //    - Delete then check if
    //       * Node has more than min -> return
-   //       * Node is empty -> merge neighbors
+   //       * Node is empty -> merge neighbors (remember to destroy node
    //       * Node is not empty but has less than min
    // TODO: Fix usize indexing to avoid panics (make a try_get?)
    fn delete_leaf(node:&mut NodeRef, key_index: usize) {
       let mut current_node = node.borrow_mut();
+      current_node.keys.remove(key_index);
 
-      if current_node.has_min_key_count() { // rotation cases
+      if current_node.has_less_than_min_keys() && !current_node.is_empty() {
          let parent_weak = current_node.parent.upgrade().unwrap();
          let mut parent = parent_weak.borrow_mut();
+         let mut moved = BTree::move_from_left(&mut parent, &mut current_node);
 
-         // TODO:
-         //    - Rotate: If the left or right have more than min push their key to parent and
-         //    pull down the parent
-         let left_sibling :Option<NodeRef> = parent.children
-            .get(current_node.index_in_parent.unwrap() - 1)
-            .map(|sibling| Rc::clone(sibling));
+         if moved.is_ok() { return; }
 
-         match left_sibling {
-            Some(sibling) if sibling.borrow_mut().has_min_key_count() => {
-               let mut sibling_ref = sibling.borrow_mut();
-               BTree::rotate_from_left(&mut sibling_ref, &mut parent, &mut current_node);
-            },
-            _ => ()
-         }
+         moved = BTree::move_from_right(&mut parent, &mut current_node);
 
-         let right_sibling :Option<NodeRef> = parent.children
-            .get(current_node.index_in_parent.unwrap())
-            .map(|sibling| Rc::clone(sibling));
+         if moved.is_ok() { return; }
 
-         match right_sibling {
-            Some(sibling) if sibling.borrow_mut().has_min_key_count() => {
-               let mut sibling_ref = sibling.borrow_mut();
-               BTree::rotate_from_left(&mut sibling_ref, &mut parent, &mut current_node);
-            },
-            _ => ()
-         }
 
          // TODO:
          //    - If both left and right have min keys pull parent and merge with left
+      }
 
-         // TODO: If the node becomes empty
-         //    - merging will just pull in the left and parent key
-         //    - grabbing from left or right will refill it
-      } else {
-         node.borrow_mut().keys.remove(key_index);
+      // TODO: If the node becomes empty
+      //    - merging will just pull in the left and parent key
+      //    - grabbing from left or right will refill it
+   }
+
+   fn move_from_left(
+      parent: &mut RefMut<Node>,
+      moved_to: &mut RefMut<Node>
+   ) -> Result<(),()> {
+
+      let current_node_idx = moved_to.index_in_parent.unwrap() as isize;
+      let left_sibling: Option<NodeRef> = parent
+         .try_clone_child(current_node_idx - 1);
+
+      match left_sibling {
+         Some(left) if left.borrow_mut().has_min_key_count() => {
+            let left_key = left.borrow_mut().keys.pop().unwrap();
+            let parent_key_to_rotate = parent.keys
+               .remove(moved_to.index_in_parent.unwrap());
+
+            parent.add_key(left_key);
+            moved_to.add_key(parent_key_to_rotate);
+            Ok(())
+         },
+         _ => Err(())
       }
    }
 
-   fn rotate_from_left(
-      // TODO: Figure out the encapsulation for the key vectors
-      left: &mut RefMut<Node>, parent: &mut RefMut<Node>, rotated_to: &mut RefMut<Node>) {
-      let left_key = left.keys.pop().unwrap();
-      let parent_key_to_rotate = parent.keys.remove(rotated_to.index_in_parent.unwrap());
-      parent.add_key(left_key);
-      rotated_to.add_key(parent_key_to_rotate);
+   fn move_from_right(
+      parent: &mut RefMut<Node>,
+      moved_to: &mut RefMut<Node>
+   ) -> Result<(),()> {
+
+      let current_node_idx = moved_to.index_in_parent.unwrap() as isize;
+      let right_sibling: Option<NodeRef> = parent
+         .try_clone_child(current_node_idx + 1);
+
+      match right_sibling {
+         Some(right) if right.borrow_mut().has_min_key_count() => {
+            let right_key = right.borrow_mut().keys.remove(0);
+            let parent_key_to_rotate = parent.keys
+               .remove(moved_to.index_in_parent.unwrap());
+
+            parent.add_key(right_key);
+            moved_to.add_key(parent_key_to_rotate);
+            Ok(())
+         },
+         _ => Err(())
+      }
    }
 
    // use the delete method as the controller over the
@@ -129,9 +146,9 @@ impl BTree {
       loop {
          if res.is_found() { return (res, node); }
 
-         let child_idx = res.unwrap();
+         let child_idx = res.unwrap() as isize;
          let node_option = node.borrow_mut()
-            .get_child(child_idx);
+            .try_clone_child(child_idx);
 
          match node_option {
             None => break,
