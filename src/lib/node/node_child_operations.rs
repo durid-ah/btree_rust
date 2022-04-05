@@ -34,7 +34,6 @@ impl Node {
       }
    }
 
-
    /// Remove the child at the specified index and update the
    /// indices of the children to the left
    pub fn remove_child(&mut self, index: usize) {
@@ -52,7 +51,6 @@ impl Node {
 
       return Some(Rc::clone(&self.children[index as usize]));
    }
-
 }
 
 #[cfg(test)]

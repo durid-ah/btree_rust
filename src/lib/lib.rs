@@ -39,9 +39,7 @@ impl BTree {
       return Ok(());
    }
 
-   // TODO: Change to delete first and then re-balance?
-   //    - Delete then check if
-   //       * Node is empty -> merge neighbors (remember to destroy node)
+   /// The logic to delete a leaf node
    fn delete_leaf(node:&mut NodeRef, key_index: usize) {
       let mut current_node = node.borrow_mut();
       let current_node_idx = current_node.index_in_parent.unwrap();
@@ -50,34 +48,34 @@ impl BTree {
       if current_node.has_more_than_min_keys() || current_node.has_min_key_count() {
          return;
       }
-      else if current_node.has_less_than_min_keys() {
-         let parent_weak: NodeRef = current_node.parent.upgrade().unwrap();
-         let mut parent = parent_weak.borrow_mut();
 
-         let mut moved = Err(());
+      let parent_weak: NodeRef = current_node.parent.upgrade().unwrap();
+      let mut parent = parent_weak.borrow_mut();
 
-         if current_node_idx != 0 {
-            moved = BTree::move_from_left(&mut parent, &mut current_node);
-         }
+      let mut moved = Err(());
 
-         if moved.is_ok() { return; }
-
-         if current_node_idx < parent.children.len() - 1 {
-            moved = BTree::move_from_right(&mut parent, &mut current_node);
-         }
-
-         if moved.is_ok() { return; }
-
-         if current_node_idx != 0 {
-            BTree::merge_with_left(&mut parent, &mut current_node);
-            return;
-         }
-
-         if current_node_idx < parent.children.len() - 1 {
-            BTree::merge_with_right(&mut parent, &mut current_node);
-            return;
-         }
+      if current_node_idx != 0 {
+         moved = BTree::move_from_left(&mut parent, &mut current_node);
       }
+
+      if moved.is_ok() { return; }
+
+      if current_node_idx < parent.children.len() - 1 {
+         moved = BTree::move_from_right(&mut parent, &mut current_node);
+      }
+
+      if moved.is_ok() { return; }
+
+      if current_node_idx != 0 {
+         BTree::merge_with_left(&mut parent, &mut current_node);
+         return;
+      }
+
+      if current_node_idx < parent.children.len() - 1 {
+         BTree::merge_with_right(&mut parent, &mut current_node);
+         return;
+      }
+
    }
 
    fn move_from_left(parent: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) -> Result<(),()> {
