@@ -175,15 +175,11 @@ impl Node {
       self.keys.len() == self.min_keys
    }
 
-   pub fn has_less_than_min_keys(&self) -> bool {
-      self.keys.len() < self.min_keys
-   }
-
    pub fn has_more_than_min_keys(&self) -> bool {
       self.keys.len() > self.min_keys
    }
 
-   pub fn has_children(&self) -> bool { self.children.len() != 0 }
+   pub fn is_leaf(&self) -> bool { self.children.len() != 0 }
 }
 
 #[cfg(test)]

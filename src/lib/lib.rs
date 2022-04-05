@@ -154,7 +154,7 @@ impl BTree {
 
       if !status.is_found() { return Ok(()); }
 
-      if !node_to_delete.borrow_mut().has_children() { // Leaf Node Cases
+      if !node_to_delete.borrow_mut().is_leaf() { // Leaf Node Cases
          BTree::delete_leaf( &mut node_to_delete, status.unwrap());
          return  Ok(())
       }
