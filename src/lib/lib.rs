@@ -39,82 +39,116 @@ impl BTree {
       return Ok(());
    }
 
-   // TODO: Refactor the get left or right sibling options
    // TODO: Change to delete first and then re-balance?
    //    - Delete then check if
-   //       * Node has more than min -> return
-   //       * Node is empty -> merge neighbors (remember to destroy node
-   //       * Node is not empty but has less than min
-   // TODO: Fix usize indexing to avoid panics (make a try_get?)
+   //       * Node is empty -> merge neighbors (remember to destroy node)
    fn delete_leaf(node:&mut NodeRef, key_index: usize) {
       let mut current_node = node.borrow_mut();
+      let current_node_idx = current_node.index_in_parent.unwrap();
       current_node.keys.remove(key_index);
 
-      if current_node.has_less_than_min_keys() && !current_node.is_empty() {
-         let parent_weak = current_node.parent.upgrade().unwrap();
+      if current_node.has_more_than_min_keys() || current_node.has_min_key_count() {
+         return;
+      }
+      else if current_node.has_less_than_min_keys() {
+         let parent_weak: NodeRef = current_node.parent.upgrade().unwrap();
          let mut parent = parent_weak.borrow_mut();
-         let mut moved = BTree::move_from_left(&mut parent, &mut current_node);
+
+         let mut moved = Err(());
+
+         if current_node_idx != 0 {
+            moved = BTree::move_from_left(&mut parent, &mut current_node);
+         }
 
          if moved.is_ok() { return; }
 
-         moved = BTree::move_from_right(&mut parent, &mut current_node);
+         if current_node_idx < parent.children.len() - 1 {
+            moved = BTree::move_from_right(&mut parent, &mut current_node);
+         }
 
          if moved.is_ok() { return; }
 
+         if current_node_idx != 0 {
+            BTree::merge_with_left(&mut parent, &mut current_node);
+            return;
+         }
 
-         // TODO:
-         //    - If both left and right have min keys pull parent and merge with left
-      }
-
-      // TODO: If the node becomes empty
-      //    - merging will just pull in the left and parent key
-      //    - grabbing from left or right will refill it
-   }
-
-   fn move_from_left(
-      parent: &mut RefMut<Node>,
-      moved_to: &mut RefMut<Node>
-   ) -> Result<(),()> {
-
-      let current_node_idx = moved_to.index_in_parent.unwrap() as isize;
-      let left_sibling: Option<NodeRef> = parent
-         .try_clone_child(current_node_idx - 1);
-
-      match left_sibling {
-         Some(left) if left.borrow_mut().has_min_key_count() => {
-            let left_key = left.borrow_mut().keys.pop().unwrap();
-            let parent_key_to_rotate = parent.keys
-               .remove(moved_to.index_in_parent.unwrap());
-
-            parent.add_key(left_key);
-            moved_to.add_key(parent_key_to_rotate);
-            Ok(())
-         },
-         _ => Err(())
+         if current_node_idx < parent.children.len() - 1 {
+            BTree::merge_with_right(&mut parent, &mut current_node);
+            return;
+         }
       }
    }
 
-   fn move_from_right(
-      parent: &mut RefMut<Node>,
-      moved_to: &mut RefMut<Node>
-   ) -> Result<(),()> {
+   fn move_from_left(parent: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) -> Result<(),()> {
+      let left_ref = moved_to.try_clone_left_sibling().unwrap();
+      let mut left_sibling = left_ref.borrow_mut();
 
-      let current_node_idx = moved_to.index_in_parent.unwrap() as isize;
-      let right_sibling: Option<NodeRef> = parent
-         .try_clone_child(current_node_idx + 1);
+      if left_sibling.has_more_than_min_keys() {
+         let left_key = left_sibling.keys.pop().unwrap();
+         let parent_key_to_rotate = parent.keys
+            .remove(moved_to.index_in_parent.unwrap());
 
-      match right_sibling {
-         Some(right) if right.borrow_mut().has_min_key_count() => {
-            let right_key = right.borrow_mut().keys.remove(0);
-            let parent_key_to_rotate = parent.keys
-               .remove(moved_to.index_in_parent.unwrap());
-
-            parent.add_key(right_key);
-            moved_to.add_key(parent_key_to_rotate);
-            Ok(())
-         },
-         _ => Err(())
+         parent.add_key(left_key);
+         moved_to.add_key(parent_key_to_rotate);
+         return Ok(());
       }
+
+      Err(())
+   }
+
+   fn move_from_right(parent: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) -> Result<(),()> {
+      let right_ref = moved_to.try_clone_right_sibling()
+         .unwrap();
+      let mut right_sibling = right_ref.borrow_mut();
+
+      if right_sibling.has_more_than_min_keys() {
+         let right_key = right_sibling.keys.remove(0);
+         let parent_key_to_rotate = parent.keys
+            .remove(moved_to.index_in_parent.unwrap());
+
+         parent.add_key(right_key);
+         moved_to.add_key(parent_key_to_rotate);
+         return Ok(())
+      }
+
+      Err(())
+   }
+
+   fn merge_with_left(parent: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
+      let left_ref = moved_to.try_clone_left_sibling()
+         .unwrap();
+      let mut left_sibling = left_ref.borrow_mut();
+      let total_capacity = left_sibling.keys.len() + moved_to.keys.len();
+      let mut merged_vec: Vec<usize> = Vec::with_capacity(total_capacity);
+      let parent_key = parent.keys
+         .remove(moved_to.index_in_parent.unwrap());
+
+      merged_vec.append(&mut left_sibling.keys);
+      merged_vec.push(parent_key);
+      merged_vec.append(&mut moved_to.keys);
+      merged_vec.sort();
+
+      left_sibling.keys = merged_vec;
+      parent.remove_child(moved_to.index_in_parent.unwrap());
+   }
+
+   fn merge_with_right(parent: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
+      let right_ref = moved_to.try_clone_right_sibling()
+         .unwrap();
+      let mut right_sibling = right_ref.borrow_mut();
+      let total_capacity = right_sibling.keys.len() + moved_to.keys.len();
+      let mut merged_vec: Vec<usize> = Vec::with_capacity(total_capacity);
+      let parent_key = parent.keys
+         .remove(moved_to.index_in_parent.unwrap() + 1);
+
+      merged_vec.append(&mut right_sibling.keys);
+      merged_vec.push(parent_key);
+      merged_vec.append(&mut moved_to.keys);
+      merged_vec.sort();
+
+      right_sibling.keys = merged_vec;
+      parent.remove_child(moved_to.index_in_parent.unwrap());
    }
 
    // use the delete method as the controller over the
