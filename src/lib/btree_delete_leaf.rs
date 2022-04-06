@@ -1,4 +1,5 @@
-use crate::{BTree, Node, NodeRef};
+use super::BTree;
+use crate::{Node, NodeRef};
 use std::cell::RefMut;
 
 impl BTree {
@@ -98,5 +99,34 @@ impl BTree {
 
         right_sibling.add_key(parent_key);
         right_sibling.merge_node(moved_to);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_simple_leaf_delete() {
+
+    }
+
+    #[test]
+    fn test_leaf_delete_with_left_move() {
+
+    }
+
+    #[test]
+    fn test_leaf_delete_with_right_move() {
+
+    }
+
+    #[test]
+    fn test_leaf_delete_with_left_merge() {
+
+    }
+
+    #[test]
+    fn test_leaf_delete_with_right_merge() {
+
     }
 }
