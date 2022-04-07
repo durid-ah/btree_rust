@@ -49,7 +49,7 @@ impl BTree {
             return Ok(());
         }
 
-        if !node_to_delete.borrow_mut().is_leaf() {
+        if node_to_delete.borrow_mut().is_leaf() {
             // Leaf Node Cases
             BTree::delete_leaf(&mut node_to_delete, status.unwrap());
             return Ok(());
@@ -67,7 +67,7 @@ impl BTree {
 
     fn find(&mut self, value: usize) -> (SearchStatus, NodeRef) {
         let mut node: NodeRef = Rc::clone(&self.root);
-        let res = node.borrow_mut().find_key_index(value);
+        let mut res = node.borrow_mut().find_key_index(value);
         loop {
             if res.is_found() {
                 return (res, node);
@@ -78,7 +78,10 @@ impl BTree {
 
             match node_option {
                 None => break,
-                Some(child) => node = child,
+                Some(child) => {
+                    node = child;
+                    res = node.borrow_mut().find_key_index(value);
+                },
             }
         }
 
