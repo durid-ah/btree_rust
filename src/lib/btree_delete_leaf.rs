@@ -1,51 +1,52 @@
 use super::BTree;
 use crate::{Node, NodeRef};
 use std::cell::RefMut;
+use std::rc::Rc;
 
 impl BTree {
     /// The logic to delete a leaf node
-    pub(super) fn delete_leaf(node: &mut NodeRef, key_index: usize) {
-        let mut current_node = node.borrow_mut();
-        current_node.keys.remove(key_index);
+    pub(super) fn delete_leaf(node: &mut RefMut<Node>, key_index: usize) {
+        node.keys.remove(key_index);
 
-        if current_node.has_more_than_min_keys() || current_node.has_min_key_count() {
+        if node.has_more_than_min_keys() || node.has_min_key_count() {
             return;
         }
 
-        let parent_weak: NodeRef = current_node.parent.upgrade().unwrap();
-        let mut parent = parent_weak.borrow_mut();
+        let parent_weak: NodeRef = node.parent.upgrade().unwrap();
+        let parent_ref = Rc::clone(&parent_weak);
+        let mut parent = parent_ref.borrow_mut();
 
         // Try and borrow a key from left sibling
-        match current_node.try_clone_left_sibling() {
+        match node.try_clone_left_sibling() {
             Some(left_ref) if left_ref.borrow().has_more_than_min_keys() => {
                 let mut left = left_ref.borrow_mut();
-                BTree::move_from_left(&mut left, &mut parent, &mut current_node);
+                BTree::move_from_left(&mut left, &mut parent, node);
                 return;
             }
             _ => {}
         }
 
         // Try and borrow a key from right sibling
-        match current_node.try_clone_right_sibling() {
+        match node.try_clone_right_sibling() {
             Some(right_ref) if right_ref.borrow().has_more_than_min_keys() => {
                 let mut right = right_ref.borrow_mut();
-                BTree::move_from_right(&mut right, &mut parent, &mut current_node);
+                BTree::move_from_right(&mut right, &mut parent, node);
                 return;
             }
             _ => {}
         }
 
         // Try and merge with rhe left sibling
-        if let Some(left_ref) = current_node.try_clone_left_sibling() {
+        if let Some(left_ref) = node.try_clone_left_sibling() {
             let mut left_sibling = left_ref.borrow_mut();
-            BTree::merge_with_left(&mut left_sibling, &mut parent, &mut current_node);
+            BTree::merge_with_left(&mut left_sibling, &mut parent, node);
             return;
         }
 
         // Try and merge with the right sibling
-        if let Some(right_ref) = current_node.try_clone_right_sibling() {
+        if let Some(right_ref) = node.try_clone_right_sibling() {
             let mut right_sibling = right_ref.borrow_mut();
-            BTree::merge_with_right(&mut right_sibling, &mut parent, &mut current_node);
+            BTree::merge_with_right(&mut right_sibling, &mut parent, node);
         }
     }
 
@@ -114,28 +115,17 @@ mod tests {
         let _ = tree.add(10);
         let _ = tree.add(15);
         let _ = tree.add(1);
-
-
-
     }
 
     #[test]
-    fn test_leaf_delete_with_left_move() {
-
-    }
+    fn test_leaf_delete_with_left_move() {}
 
     #[test]
-    fn test_leaf_delete_with_right_move() {
-
-    }
+    fn test_leaf_delete_with_right_move() {}
 
     #[test]
-    fn test_leaf_delete_with_left_merge() {
-
-    }
+    fn test_leaf_delete_with_left_merge() {}
 
     #[test]
-    fn test_leaf_delete_with_right_merge() {
-
-    }
+    fn test_leaf_delete_with_right_merge() {}
 }
