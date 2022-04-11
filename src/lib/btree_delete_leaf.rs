@@ -49,10 +49,7 @@ impl BTree {
     /// Get the largest key from  the left sibling and pass it to the parent
     /// and take the parent's key to the left of the `moved_to` child and
     /// move it into it
-    fn move_from_left(
-        left: &mut RefMut<Node>,
-        moved_to: &mut RefMut<Node>,
-    ) {
+    fn move_from_left(left: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
         let left_key = left.keys.pop().unwrap();
@@ -65,10 +62,7 @@ impl BTree {
     /// Get the smallest key from  the right sibling and pass it to the parent
     /// and take the parent's key to the right of the `moved_to` child and
     /// move it into it
-    fn move_from_right(
-        right: &mut RefMut<Node>,
-        moved_to: &mut RefMut<Node>,
-    ) {
+    fn move_from_right(right: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
         let right_key = right.keys.remove(0);
@@ -78,10 +72,7 @@ impl BTree {
         moved_to.add_key(parent_key_to_rotate);
     }
 
-    fn merge_with_left(
-        left_sibling: &mut RefMut<Node>,
-        moved_to: &mut RefMut<Node>,
-    ) {
+    fn merge_with_left(left_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
         let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap());
@@ -90,10 +81,7 @@ impl BTree {
         left_sibling.merge_node(moved_to);
     }
 
-    fn merge_with_right(
-        right_sibling: &mut RefMut<Node>,
-        moved_to: &mut RefMut<Node>,
-    ) {
+    fn merge_with_right(right_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
         let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap() + 1);

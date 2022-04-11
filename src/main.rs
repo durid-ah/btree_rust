@@ -1,5 +1,5 @@
 use btree_rust::BTree;
-    
+
 fn main() {
     let mut tree = BTree::new(3);
     let _ = tree.add(0);
