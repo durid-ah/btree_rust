@@ -12,15 +12,11 @@ impl BTree {
             return;
         }
 
-        let parent_weak: NodeRef = node.parent.upgrade().unwrap();
-        let parent_ref = Rc::clone(&parent_weak);
-        let mut parent = parent_ref.borrow_mut();
-
         // Try and borrow a key from left sibling
         match node.try_clone_left_sibling() {
             Some(left_ref) if left_ref.borrow().has_more_than_min_keys() => {
                 let mut left = left_ref.borrow_mut();
-                BTree::move_from_left(&mut left, &mut parent, node);
+                BTree::move_from_left(&mut left, node);
                 return;
             }
             _ => {}
@@ -30,7 +26,7 @@ impl BTree {
         match node.try_clone_right_sibling() {
             Some(right_ref) if right_ref.borrow().has_more_than_min_keys() => {
                 let mut right = right_ref.borrow_mut();
-                BTree::move_from_right(&mut right, &mut parent, node);
+                BTree::move_from_right(&mut right, node);
                 return;
             }
             _ => {}
@@ -39,14 +35,14 @@ impl BTree {
         // Try and merge with rhe left sibling
         if let Some(left_ref) = node.try_clone_left_sibling() {
             let mut left_sibling = left_ref.borrow_mut();
-            BTree::merge_with_left(&mut left_sibling, &mut parent, node);
+            BTree::merge_with_left(&mut left_sibling, node);
             return;
         }
 
         // Try and merge with the right sibling
         if let Some(right_ref) = node.try_clone_right_sibling() {
             let mut right_sibling = right_ref.borrow_mut();
-            BTree::merge_with_right(&mut right_sibling, &mut parent, node);
+            BTree::merge_with_right(&mut right_sibling, node);
         }
     }
 
@@ -55,9 +51,10 @@ impl BTree {
     /// move it into it
     fn move_from_left(
         left: &mut RefMut<Node>,
-        parent: &mut RefMut<Node>,
         moved_to: &mut RefMut<Node>,
     ) {
+        let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
+        let mut parent = parent_weak.borrow_mut();
         let left_key = left.keys.pop().unwrap();
         let parent_key_to_rotate = parent.keys.remove(moved_to.index_in_parent.unwrap());
 
@@ -70,9 +67,10 @@ impl BTree {
     /// move it into it
     fn move_from_right(
         right: &mut RefMut<Node>,
-        parent: &mut RefMut<Node>,
         moved_to: &mut RefMut<Node>,
     ) {
+        let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
+        let mut parent = parent_weak.borrow_mut();
         let right_key = right.keys.remove(0);
         let parent_key_to_rotate = parent.keys.remove(moved_to.index_in_parent.unwrap());
 
@@ -82,9 +80,10 @@ impl BTree {
 
     fn merge_with_left(
         left_sibling: &mut RefMut<Node>,
-        parent: &mut RefMut<Node>,
         moved_to: &mut RefMut<Node>,
     ) {
+        let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
+        let mut parent = parent_weak.borrow_mut();
         let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap());
 
         left_sibling.add_key(parent_key);
@@ -93,9 +92,10 @@ impl BTree {
 
     fn merge_with_right(
         right_sibling: &mut RefMut<Node>,
-        parent: &mut RefMut<Node>,
         moved_to: &mut RefMut<Node>,
     ) {
+        let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
+        let mut parent = parent_weak.borrow_mut();
         let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap() + 1);
 
         right_sibling.add_key(parent_key);
