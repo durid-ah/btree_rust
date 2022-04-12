@@ -4,8 +4,8 @@ use btree_delete_leaf as leaf_delete;
 use node::{node_utils::new_node_ref, Node, NodeRef};
 use std::rc::Rc;
 
-mod btree_delete_leaf;
 mod node;
+mod btree_delete_leaf;
 
 #[derive(Debug)]
 pub enum BTreeError {
@@ -309,5 +309,81 @@ mod tests {
             assert_eq!(level_3_second_child.keys[0], 7);
             assert_eq!(level_3_second_child.keys.len(), 1);
         }
+    }
+
+    mod delete_key_tests {
+        use super::*;
+
+        #[test]
+        fn test_simple_leaf_delete() {
+            let mut tree = BTree::new(3);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(1);
+
+            let res = tree.delete(15);
+            assert!(res.is_ok());
+            let (res, _) = tree.find(15);
+            match res {
+                SearchStatus::NotFound(_) => assert!(true),
+                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted")
+            }
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![5]);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![0, 1]);
+
+            let right_child = root.children[1].borrow_mut();
+            let right_child_keys = &right_child.keys;
+            assert_eq!(*right_child_keys, vec![10]);
+        }
+
+        #[test]
+        fn test_leaf_delete_with_left_move() {
+            let mut tree = BTree::new(3);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(1);
+
+            let _ = tree.delete(15);
+            let res = tree.delete(10);
+            assert!(res.is_ok());
+            let (res, _) = tree.find(10);
+            match res {
+                SearchStatus::NotFound(_) => assert!(true),
+                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted")
+            }
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![1]);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![0]);
+
+            let right_child = root.children[1].borrow_mut();
+            let right_child_keys = &right_child.keys;
+            assert_eq!(*right_child_keys, vec![5]);
+        }
+
+        #[test]
+        fn test_leaf_delete_with_right_move() {
+
+        }
+
+        #[test]
+        fn test_leaf_delete_with_left_merge() {}
+
+        #[test]
+        fn test_leaf_delete_with_right_merge() {}
     }
 }

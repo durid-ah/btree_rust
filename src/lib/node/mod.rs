@@ -121,13 +121,11 @@ impl Node {
         right_keys.reverse(); // ensure they are in the proper order
 
         // pop half of the children
-        let mut right_child_idx = 0;
-        for _ in ((mid_key_idx + 1)..child_len).rev() {
+        for (right_child_idx, _) in ((mid_key_idx + 1)..child_len).rev().enumerate() {
             let node = self.children.pop().unwrap();
             node.borrow_mut().parent = Rc::downgrade(&right_node);
             node.borrow_mut().index_in_parent = Some(right_child_idx);
             right_children.push(node);
-            right_child_idx += 1;
         }
         right_children.reverse(); // ensure they are in the proper order
 

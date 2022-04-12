@@ -89,27 +89,4 @@ fn merge_with_right(right_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node
 
 #[cfg(test)]
 mod tests {
-    use crate::BTree;
-
-    #[test]
-    fn test_simple_leaf_delete() {
-        let mut tree = BTree::new(3);
-        let _ = tree.add(0);
-        let _ = tree.add(5);
-        let _ = tree.add(10);
-        let _ = tree.add(15);
-        let _ = tree.add(1);
-    }
-
-    #[test]
-    fn test_leaf_delete_with_left_move() {}
-
-    #[test]
-    fn test_leaf_delete_with_right_move() {}
-
-    #[test]
-    fn test_leaf_delete_with_left_merge() {}
-
-    #[test]
-    fn test_leaf_delete_with_right_merge() {}
 }
