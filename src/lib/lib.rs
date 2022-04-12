@@ -1,5 +1,6 @@
 use crate::node::search_status::SearchStatus;
 use crate::BTreeError::ValueAlreadyExists;
+use btree_delete_leaf as leaf_delete;
 use node::{node_utils::new_node_ref, Node, NodeRef};
 use std::rc::Rc;
 
@@ -52,7 +53,7 @@ impl BTree {
         let mut node_ref = node_to_delete.borrow_mut();
         if node_ref.is_leaf() {
             // Leaf Node Cases
-            BTree::delete_leaf(&mut node_ref, status.unwrap());
+            leaf_delete::delete_leaf(&mut node_ref, status.unwrap());
             return Ok(());
         }
 
