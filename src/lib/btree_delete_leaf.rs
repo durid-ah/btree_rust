@@ -1,7 +1,6 @@
 use super::BTree;
 use crate::{Node, NodeRef};
 use std::cell::RefMut;
-use std::rc::Rc;
 
 impl BTree {
     /// The logic to delete a leaf node
@@ -53,7 +52,7 @@ impl BTree {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
         let left_key = left.keys.pop().unwrap();
-        let parent_key_to_rotate = parent.keys.remove(moved_to.index_in_parent.unwrap());
+        let parent_key_to_rotate = parent.keys.remove(moved_to.index_in_parent.unwrap() - 1);
 
         parent.add_key(left_key);
         moved_to.add_key(parent_key_to_rotate);
@@ -75,7 +74,7 @@ impl BTree {
     fn merge_with_left(left_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
-        let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap());
+        let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap() - 1);
 
         left_sibling.add_key(parent_key);
         left_sibling.merge_node(moved_to);
@@ -84,7 +83,7 @@ impl BTree {
     fn merge_with_right(right_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node>) {
         let parent_weak: NodeRef = moved_to.parent.upgrade().unwrap();
         let mut parent = parent_weak.borrow_mut();
-        let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap() + 1);
+        let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap());
 
         right_sibling.add_key(parent_key);
         right_sibling.merge_node(moved_to);
