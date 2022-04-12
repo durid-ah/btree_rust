@@ -4,8 +4,8 @@ use btree_delete_leaf as leaf_delete;
 use node::{node_utils::new_node_ref, Node, NodeRef};
 use std::rc::Rc;
 
-mod node;
 mod btree_delete_leaf;
+mod node;
 
 #[derive(Debug)]
 pub enum BTreeError {
@@ -328,7 +328,7 @@ mod tests {
             let (res, _) = tree.find(15);
             match res {
                 SearchStatus::NotFound(_) => assert!(true),
-                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted")
+                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted"),
             }
 
             let root = tree.root.borrow_mut();
@@ -359,7 +359,7 @@ mod tests {
             let (res, _) = tree.find(10);
             match res {
                 SearchStatus::NotFound(_) => assert!(true),
-                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted")
+                SearchStatus::Found(_) => assert!(false, "Key 15 should be deleted"),
             }
 
             let root = tree.root.borrow_mut();
@@ -376,9 +376,7 @@ mod tests {
         }
 
         #[test]
-        fn test_leaf_delete_with_right_move() {
-
-        }
+        fn test_leaf_delete_with_right_move() {}
 
         #[test]
         fn test_leaf_delete_with_left_merge() {}

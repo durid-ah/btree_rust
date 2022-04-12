@@ -88,5 +88,4 @@ fn merge_with_right(right_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node
 }
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}
