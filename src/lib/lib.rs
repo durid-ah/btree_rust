@@ -376,7 +376,30 @@ mod tests {
         }
 
         #[test]
-        fn test_leaf_delete_with_right_move() {}
+        fn test_leaf_delete_with_right_move() {
+            let mut tree = BTree::new(3);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(1);
+
+            let _ = tree.delete(1);
+            let res = tree.delete(0);
+            assert!(res.is_ok());
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![10]);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![5]);
+
+            let right_child = root.children[1].borrow_mut();
+            let right_child_keys = &right_child.keys;
+            assert_eq!(*right_child_keys, vec![15]);
+        }
 
         #[test]
         fn test_leaf_delete_with_left_merge() {}
