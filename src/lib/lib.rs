@@ -402,9 +402,31 @@ mod tests {
         }
 
         #[test]
-        fn test_leaf_delete_with_left_merge() {}
+        fn test_delete_when_root_is_leaf_and_key_is_deleted() {
+            let mut tree = BTree::new(5);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let res = tree.delete(5);
+
+            assert!(res.is_ok());
+            let (res, _) = tree.find(5);
+
+            match res {
+                SearchStatus::NotFound(_) => assert!(true),
+                SearchStatus::Found(_) => assert!(false, "Key 5 should be deleted"),
+            }
+
+
+        }
 
         #[test]
-        fn test_leaf_delete_with_right_merge() {}
+        fn test_leaf_delete_with_left_merge() {
+            todo!()
+        }
+
+        #[test]
+        fn test_leaf_delete_with_right_merge() {
+            todo!()
+        }
     }
 }

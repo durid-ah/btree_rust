@@ -17,16 +17,20 @@ impl Node {
         let mut current_idx = new_child_idx - 1;
 
         loop {
-            let current_val = self.children[current_idx].borrow().get_max_key();
-            let new_child_val = self.children[new_child_idx].borrow().get_min_key();
+            let mut current_child = self.children[current_idx].borrow_mut();
+            let mut new_child = self.children[new_child_idx].borrow_mut();
+            let current_val = current_child.get_max_key();
+            let new_child_val = new_child.get_min_key();
 
             if new_child_val > current_val {
                 // if the value is in the right spot end the loop
                 break;
             }
 
-            self.children[new_child_idx].borrow_mut().index_in_parent = Some(current_idx);
-            self.children[current_idx].borrow_mut().index_in_parent = Some(new_child_idx);
+            new_child.index_in_parent = Some(current_idx);
+            current_child.index_in_parent = Some(new_child_idx);
+            drop(new_child);
+            drop(current_child);
             self.children.swap(new_child_idx, current_idx);
 
             if current_idx > 0 {
