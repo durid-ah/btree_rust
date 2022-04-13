@@ -177,12 +177,27 @@ impl Node {
         self.keys.len() > self.order - 1
     }
 
+    /// Returns true if the node is the root and has 1 key
+    /// has otherwise if it has ceil(order / 2) - 1 keys
     pub fn has_min_key_count(&self) -> bool {
-        self.keys.len() == self.min_keys
+        if self.is_root() {
+            self.keys.len() == 1
+        } else {
+            self.keys.len() == self.min_keys
+        }
     }
 
     pub fn has_more_than_min_keys(&self) -> bool {
-        self.keys.len() > self.min_keys
+        if self.is_root() {
+            self.keys.len() > 1
+        } else {
+            self.keys.len() > self.min_keys
+        }
+
+    }
+
+    pub fn is_root(&self) -> bool {
+        self.parent.upgrade().is_none()
     }
 
     pub fn is_leaf(&self) -> bool {

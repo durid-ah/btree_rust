@@ -415,8 +415,6 @@ mod tests {
                 SearchStatus::NotFound(_) => assert!(true),
                 SearchStatus::Found(_) => assert!(false, "Key 5 should be deleted"),
             }
-
-
         }
 
         #[test]
