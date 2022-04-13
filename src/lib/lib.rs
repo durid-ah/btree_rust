@@ -119,7 +119,7 @@ impl BTree {
                     // if we are splitting the root node instantiate a new parent
                     let new_parent: NodeRef = new_node_ref(self.order);
                     self.root = Rc::clone(&new_parent); // set the new parent as the root
-                                                        // if the parent is new the left node needs to be inserted
+                    // if the parent is new the left node needs to be inserted
                     insert_left = true;
                     new_parent
                 }
@@ -419,7 +419,28 @@ mod tests {
 
         #[test]
         fn test_leaf_delete_with_left_merge() {
-            todo!()
+            let mut tree = BTree::new(5);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(20);
+            let _ = tree.add(25);
+            let _ = tree.add(30);
+            let _ = tree.add(35);
+            let _ = tree.add(40);
+
+            let res = tree.delete(25);
+
+            assert!(res.is_ok());
+            let (res, _) = tree.find(25);
+
+            match res {
+                SearchStatus::NotFound(_) => assert!(true),
+                SearchStatus::Found(_) => assert!(false, "Key 5 should be deleted"),
+            }
         }
 
         #[test]
