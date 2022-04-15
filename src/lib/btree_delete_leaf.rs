@@ -75,6 +75,7 @@ fn merge_with_left(left_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node>)
     let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap() - 1);
 
     left_sibling.add_key(parent_key);
+    drop(parent);
     left_sibling.merge_node(moved_to);
 }
 

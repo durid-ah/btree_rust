@@ -432,7 +432,8 @@ mod tests {
             let _ = tree.add(35);
             let _ = tree.add(40);
 
-            let res = tree.delete(25);
+            let _ = tree.delete(20); 
+            let res = tree.delete(25); 
 
             assert!(res.is_ok());
             let (res, _) = tree.find(25);
@@ -441,6 +442,21 @@ mod tests {
                 SearchStatus::NotFound(_) => assert!(true),
                 SearchStatus::Found(_) => assert!(false, "Key 5 should be deleted"),
             }
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![30]);
+
+            let child_count = root.children.len();
+            assert_eq!(child_count, 2);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![0,5,10,15]);
+
+            let middle_child = root.children[1].borrow_mut();
+            let middle_child_keys = &middle_child.keys;
+            assert_eq!(*middle_child_keys, vec![35, 40]);
         }
 
         #[test]
