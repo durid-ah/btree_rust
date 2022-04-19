@@ -97,6 +97,7 @@ impl Node {
         panic!("Unable to find value {}", key)
     }
 
+    //TODO: Change to split children too?
     /// Split the node down the middle and return the mid key and right
     /// node that broke off
     ///
@@ -138,13 +139,12 @@ impl Node {
         (mid_key, right_node)
     }
 
-    // TODO: Merge children?
+    // TODO: Change to merge children
     pub fn merge_node(&mut self, other: &mut RefMut<Node>) {
         self.keys.append(&mut other.keys);
         self.keys.sort_unstable();
         let child_idx_to_delete = other.index_in_parent.unwrap();
         let parent_ref: NodeRef = other.parent.upgrade().unwrap();
-        drop(other);
         parent_ref.borrow_mut().remove_child(child_idx_to_delete);
     }
 
