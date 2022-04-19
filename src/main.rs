@@ -4,8 +4,6 @@ fn main() {
     let mut tree = BTree::new(5);
     let _ = tree.add(0);
     let _ = tree.add(5);
-    let _ = tree.add(0);
-    let _ = tree.add(5);
     let _ = tree.add(10);
     let _ = tree.add(15);
     let _ = tree.add(20);
@@ -13,6 +11,8 @@ fn main() {
     let _ = tree.add(30);
     let _ = tree.add(35);
     let _ = tree.add(40);
+
+    let res = tree.delete(5);
 
     println!("Hello, world!");
 }

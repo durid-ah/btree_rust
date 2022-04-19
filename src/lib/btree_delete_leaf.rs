@@ -31,16 +31,14 @@ pub(super) fn delete_leaf(node: &mut RefMut<Node>, key_index: usize) {
 
     // Try and merge with rhe left sibling
     if let Some(left_ref) = node.try_clone_left_sibling() {
-        let mut left_sibling = left_ref.borrow_mut();
-        merge_with_left(&mut left_sibling, node);
+        merge_with_left( &mut left_ref.borrow_mut(), node);
         return;
     }
 
     // Try and merge with the right sibling
     if let Some(right_ref) = node.try_clone_right_sibling() {
         let mut right_sibling = right_ref.borrow_mut();
-        merge_with_right(&mut right_sibling, node);
-    }
+        merge_with_right(&mut right_sibling, node);    }
 }
 
 /// Get the largest key from  the left sibling and pass it to the parent
@@ -85,6 +83,7 @@ fn merge_with_right(right_sibling: &mut RefMut<Node>, moved_to: &mut RefMut<Node
     let parent_key = parent.keys.remove(moved_to.index_in_parent.unwrap());
 
     right_sibling.add_key(parent_key);
+    drop(parent);
     right_sibling.merge_node(moved_to);
 }
 

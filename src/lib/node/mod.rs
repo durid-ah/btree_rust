@@ -142,34 +142,26 @@ impl Node {
     pub fn merge_node(&mut self, other: &mut RefMut<Node>) {
         self.keys.append(&mut other.keys);
         self.keys.sort_unstable();
-        other
-            .parent
-            .upgrade()
-            .unwrap()
-            .borrow_mut()
-            .remove_child(other.index_in_parent.unwrap())
+        let child_idx_to_delete = other.index_in_parent.unwrap();
+        let parent_ref: NodeRef = other.parent.upgrade().unwrap();
+        drop(other);
+        parent_ref.borrow_mut().remove_child(child_idx_to_delete);
     }
 
     /// Return a cloned pointer to the sibling at the left
     pub fn try_clone_left_sibling(&self) -> Option<NodeRef> {
         let left_node_idx = (self.index_in_parent.unwrap() as isize) - 1;
-        let parent_ref = self.parent.upgrade();
-
-        parent_ref?
-            .borrow_mut()
-            .try_clone_child(left_node_idx)
-            .map(|left_ref| Rc::clone(&left_ref))
+        self.parent.upgrade()?
+           .borrow_mut()
+           .try_clone_child(left_node_idx)
     }
 
     /// Return a cloned pointer to the sibling at the right
     pub fn try_clone_right_sibling(&self) -> Option<NodeRef> {
         let right_node_idx = (self.index_in_parent.unwrap() as isize) + 1;
-        let parent_ref = self.parent.upgrade();
-
-        parent_ref?
+         self.parent.upgrade()?
             .borrow_mut()
             .try_clone_child(right_node_idx)
-            .map(|right_ref| Rc::clone(&right_ref))
     }
 
     /// Shows if the key container is over capacity and ready for a split
@@ -193,7 +185,6 @@ impl Node {
         } else {
             self.keys.len() > self.min_keys
         }
-
     }
 
     pub fn is_root(&self) -> bool {
