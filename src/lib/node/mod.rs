@@ -97,7 +97,7 @@ impl Node {
         panic!("Unable to find value {}", key)
     }
 
-    //TODO: Change to split children too?
+    //TODO: Change to split child too?
     /// Split the node down the middle and return the mid key and right
     /// node that broke off
     ///
@@ -137,6 +137,27 @@ impl Node {
         right_node.borrow_mut().parent = self.parent.clone();
 
         (mid_key, right_node)
+    }
+
+    pub fn merge_children(&mut self, merge_into_index: usize, merge_from_index: usize) -> Result<(), String> {
+        let diff = (merge_into_index as isize - merge_from_index as isize).abs();
+
+        if diff != 1 {
+            return Err(String::from("The children must be next to each other"));
+        }
+
+        let mut merge_into_child = self.children[merge_into_index].borrow_mut();
+        let mut merge_from_child = self.children[merge_from_index].borrow_mut();
+
+        merge_into_child.keys.append(&mut merge_from_child.keys);
+        merge_into_child.children.append(&mut merge_from_child.children);
+
+        drop(merge_into_child);
+        drop(merge_from_child);
+
+        self.children.remove(merge_from_index);
+
+        Ok(())
     }
 
     // TODO: Change to merge children
