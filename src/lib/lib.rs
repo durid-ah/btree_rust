@@ -44,19 +44,35 @@ impl BTree {
     }
 
     pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
-        let (status, node_to_delete) = self.find(value);
+        let (status, node_to_delete_from) = self.find(value);
 
         if !status.is_found() {
+            return Ok(()); // TODO: Should be error
+        }
+
+        let mut node_to_delete_from = node_to_delete_from.borrow_mut();
+        let key_index_to_delete = status.unwrap();
+        node_to_delete_from.keys.remove(key_index_to_delete);
+
+        // Handles root node and safe nodes
+        if node_to_delete_from.has_more_than_min_keys() || node_to_delete_from.has_min_key_count() {
             return Ok(());
         }
 
-        let mut node_ref = node_to_delete.borrow_mut();
-        if node_ref.is_leaf() {
-            // Leaf Node Cases
-            leaf_delete::delete_leaf(&mut node_ref, status.unwrap());
+        let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
+        let is_leaf: bool = node_to_delete_from.is_leaf();
+        let child_idx_deleted_from = node_to_delete_from.index_in_parent;
+
+        drop(node_to_delete_from);
+
+        // Leaf Node Cases
+        if is_leaf && parent.is_some() {
+            leaf_delete::delete_leaf(
+                parent.unwrap(), child_idx_deleted_from.unwrap());
             return Ok(());
         }
 
+        return Ok(());
         // TODO:
         //    * if it does have children
         //       - bring up the left or right child key
@@ -64,7 +80,6 @@ impl BTree {
         //       and if the node with deleted node still has minimum keys
         //       bring up left or right
         //    * if deletion affects height use parent and sibling to merge nodes together
-        Err(BTreeError::ValueAlreadyExists)
     }
 
     fn find(&mut self, value: usize) -> (SearchStatus, NodeRef) {

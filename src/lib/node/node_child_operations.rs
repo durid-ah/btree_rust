@@ -40,15 +40,6 @@ impl Node {
         }
     }
 
-    /// Remove the child at the specified index and update the
-    /// indices of the children to the left
-    pub fn remove_child(&mut self, index: usize) {
-        self.children.remove(index);
-        for idx in index..self.children.len() {
-            self.children[idx].borrow_mut().index_in_parent = Some(idx);
-        }
-    }
-
     /// Return a cloned pointer to the child node at a given index
     pub fn try_clone_child(&self, index: isize) -> Option<NodeRef> {
         if self.children.is_empty() || index < 0 {

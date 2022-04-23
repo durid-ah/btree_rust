@@ -1,6 +1,6 @@
 use node_utils::{calculate_mid, new_node_ref};
 use search_status::SearchStatus;
-use std::cell::{RefCell, RefMut};
+use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
 
 pub(crate) mod node_child_operations;
@@ -17,7 +17,7 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 #[derive(Debug)]
 pub(crate) struct Node {
     pub parent: WeakNodeRef,
-    pub index_in_parent: Option<usize>,
+    pub index_in_parent: Option<usize>, // TODO: Very likely useless
     pub keys: Vec<usize>,
     pub children: Vec<NodeRef>,
 
@@ -158,31 +158,6 @@ impl Node {
         self.children.remove(merge_from_index);
 
         Ok(())
-    }
-
-    // TODO: Change to merge children
-    pub fn merge_node(&mut self, other: &mut RefMut<Node>) {
-        self.keys.append(&mut other.keys);
-        self.keys.sort_unstable();
-        let child_idx_to_delete = other.index_in_parent.unwrap();
-        let parent_ref: NodeRef = other.parent.upgrade().unwrap();
-        parent_ref.borrow_mut().remove_child(child_idx_to_delete);
-    }
-
-    /// Return a cloned pointer to the sibling at the left
-    pub fn try_clone_left_sibling(&self) -> Option<NodeRef> {
-        let left_node_idx = (self.index_in_parent.unwrap() as isize) - 1;
-        self.parent.upgrade()?
-           .borrow_mut()
-           .try_clone_child(left_node_idx)
-    }
-
-    /// Return a cloned pointer to the sibling at the right
-    pub fn try_clone_right_sibling(&self) -> Option<NodeRef> {
-        let right_node_idx = (self.index_in_parent.unwrap() as isize) + 1;
-         self.parent.upgrade()?
-            .borrow_mut()
-            .try_clone_child(right_node_idx)
     }
 
     /// Shows if the key container is over capacity and ready for a split
