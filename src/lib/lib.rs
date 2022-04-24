@@ -61,6 +61,7 @@ impl BTree {
 
         let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
         let is_leaf: bool = node_to_delete_from.is_leaf();
+        // TODO: Remove index in parent reference
         let child_idx_deleted_from = node_to_delete_from.index_in_parent;
 
         drop(node_to_delete_from);

@@ -27,8 +27,6 @@ impl Node {
                 break;
             }
 
-            new_child.index_in_parent = Some(current_idx);
-            current_child.index_in_parent = Some(new_child_idx);
             drop(new_child);
             drop(current_child);
             self.children.swap(new_child_idx, current_idx);
@@ -78,9 +76,7 @@ mod child_tests {
         let second = parent.try_clone_child(1).unwrap();
 
         assert_eq!(first.borrow_mut().get_key(0), 1);
-        assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
         assert_eq!(second.borrow_mut().get_key(0), 2);
-        assert_eq!(second.borrow_mut().index_in_parent.unwrap(), 1);
     }
 
     #[test]
@@ -95,8 +91,6 @@ mod child_tests {
 
         assert_eq!(first.borrow_mut().get_key(0), 1);
         assert_eq!(first.borrow_mut().get_key(0), 1);
-        assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
         assert_eq!(second.borrow_mut().get_key(0), 2);
-        assert_eq!(second.borrow_mut().index_in_parent.unwrap(), 1);
     }
 }

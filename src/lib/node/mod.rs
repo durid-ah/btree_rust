@@ -125,7 +125,6 @@ impl Node {
         for (right_child_idx, _) in ((mid_key_idx + 1)..child_len).rev().enumerate() {
             let node = self.children.pop().unwrap();
             node.borrow_mut().parent = Rc::downgrade(&right_node);
-            node.borrow_mut().index_in_parent = Some(right_child_idx);
             right_children.push(node);
         }
         right_children.reverse(); // ensure they are in the proper order
@@ -139,9 +138,9 @@ impl Node {
         (mid_key, right_node)
     }
 
-    pub fn merge_children(&mut self, merge_into_index: usize, merge_from_index: usize) -> Result<(), String> {
+    pub fn merge_children(
+        &mut self, merge_into_index: usize, merge_from_index: usize) -> Result<(), String> {
         let diff = merge_into_index as isize - merge_from_index as isize;
-
 
         let parent_key_to_merge = if diff == 1 {
             merge_from_index
@@ -160,6 +159,7 @@ impl Node {
         merge_into_child.keys.append(&mut merge_from_child.keys);
         merge_into_child.keys.sort_unstable();
 
+        // TODO: Sort the inserted children
         merge_into_child.children.append(&mut merge_from_child.children);
 
         drop(merge_into_child);
