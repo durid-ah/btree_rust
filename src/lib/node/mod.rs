@@ -140,16 +140,26 @@ impl Node {
     }
 
     pub fn merge_children(&mut self, merge_into_index: usize, merge_from_index: usize) -> Result<(), String> {
-        let diff = (merge_into_index as isize - merge_from_index as isize).abs();
+        let diff = merge_into_index as isize - merge_from_index as isize;
 
-        if diff != 1 {
-            return Err(String::from("The children must be next to each other"));
-        }
+
+        let parent_key_to_merge = if diff == 1 {
+            merge_from_index
+        } else if diff == -1 {
+            merge_into_index
+        } else {
+            panic!("Merged children must be next to each other")
+        };
+
+        let parent_key = self.keys.remove(parent_key_to_merge);
 
         let mut merge_into_child = self.children[merge_into_index].borrow_mut();
         let mut merge_from_child = self.children[merge_from_index].borrow_mut();
 
+        merge_into_child.keys.push(parent_key);
         merge_into_child.keys.append(&mut merge_from_child.keys);
+        merge_into_child.keys.sort_unstable();
+
         merge_into_child.children.append(&mut merge_from_child.children);
 
         drop(merge_into_child);

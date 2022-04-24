@@ -474,34 +474,34 @@ mod tests {
 
         #[test]
         fn test_leaf_delete_with_right_merge() {
-            // let mut tree = BTree::new(5);
-            // let _ = tree.add(0);
-            // let _ = tree.add(5);
-            // let _ = tree.add(10);
-            // let _ = tree.add(15);
-            // let _ = tree.add(20);
-            // let _ = tree.add(25);
-            // let _ = tree.add(30);
-            // let _ = tree.add(35);
-            // let _ = tree.add(40);
-            //
-            // let res = tree.delete(5);
-            // assert!(res.is_ok());
-            //
-            // let root = tree.root.borrow_mut();
-            // let key_vec = &root.keys;
-            // assert_eq!(*key_vec, vec![25]);
-            //
-            // let child_count = root.children.len();
-            // assert_eq!(child_count, 2);
-            //
-            // let left_child = root.children[0].borrow_mut();
-            // let left_child_keys = &left_child.keys;
-            // assert_eq!(*left_child_keys, vec![0, 10, 15, 20]);
-            //
-            // let right_child = root.children[1].borrow_mut();
-            // let right_child_keys = &right_child.keys;
-            // assert_eq!(*right_child_keys, vec![30, 35, 40]);
+            let mut tree = BTree::new(5);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(20);
+            let _ = tree.add(25);
+            let _ = tree.add(30);
+            let _ = tree.add(35);
+            let _ = tree.add(40);
+
+            let res = tree.delete(5);
+            assert!(res.is_ok());
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![25]);
+
+            let child_count = root.children.len();
+            assert_eq!(child_count, 2);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![0, 10, 15, 20]);
+
+            let right_child = root.children[1].borrow_mut();
+            let right_child_keys = &right_child.keys;
+            assert_eq!(*right_child_keys, vec![30, 35, 40]);
         }
     }
 }
