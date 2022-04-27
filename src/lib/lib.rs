@@ -65,17 +65,19 @@ impl BTree {
             return Ok(());
         }
 
-        let index_in_parent = node_to_delete_from.index_in_parent.unwrap();
-        drop(node_to_delete_from);
 
+        println!("{:?}", is_leaf);
         if !is_leaf {
-
+            delete_inner::delete_inner(&mut node_to_delete_from, key_index_to_delete);
         }
+
+
 
         // Leaf Node Cases
         else {
+            let index_in_parent = node_to_delete_from.index_in_parent.unwrap();
+            drop(node_to_delete_from);
             leaf_delete::delete_leaf(parent.unwrap(), index_in_parent);
-            return Ok(());
         }
 
         return Ok(());
@@ -510,6 +512,66 @@ mod tests {
             let right_child = root.children[1].borrow_mut();
             let right_child_keys = &right_child.keys;
             assert_eq!(*right_child_keys, vec![30, 35, 40]);
+        }
+    }
+
+    mod delete_inner_key_tests {
+        use crate::{BTree, SearchStatus};
+
+        #[test]
+        fn delete_inner_key_with_left_child_borrow_test()
+        {
+            let mut tree = BTree::new(4);
+            let _ = tree.add(0);
+            let _ = tree.add(5);
+            let _ = tree.add(10);
+            let _ = tree.add(15);
+            let _ = tree.add(20);
+            let _ = tree.add(25);
+            let _ = tree.add(30);
+            let _ = tree.add(35);
+            let _ = tree.add(40);
+            let _ = tree.add(45);
+            let _ = tree.add(31);
+            let _ = tree.add(32);
+
+            let res = tree.delete(35);
+
+            assert!(res.is_ok());
+            let (res, _) = tree.find(35);
+
+            match res {
+                SearchStatus::NotFound(_) => assert!(true),
+                SearchStatus::Found(_) => assert!(false, "Key 35 should be deleted"),
+            }
+
+            let root = tree.root.borrow_mut();
+            let key_vec = &root.keys;
+            assert_eq!(*key_vec, vec![15]);
+
+            let child_count = root.children.len();
+            assert_eq!(child_count, 2);
+
+            let left_child = root.children[0].borrow_mut();
+            let left_child_keys = &left_child.keys;
+            assert_eq!(*left_child_keys, vec![5]);
+
+            let right_child = root.children[1].borrow_mut();
+            let right_child_keys = &right_child.keys;
+            assert_eq!(*right_child_keys, vec![25, 32]);
+
+            let left_child_left_child = left_child.children[0].borrow_mut();
+            let left_child_left_child_keys = &left_child_left_child.keys;
+            assert_eq!(*left_child_left_child_keys, vec![0]);
+
+            let left_child_right_child = left_child.children[0].borrow_mut();
+            let left_child_right_child_keys = &left_child_right_child.keys;
+            assert_eq!(*left_child_right_child_keys, vec![10]);
+
+            let right_child_left_child = right_child.children[0].borrow_mut();
+            let right_child_left_child_keys = &right_child_left_child.keys;
+            assert_eq!(*right_child_left_child_keys , vec![0]);
+
         }
     }
 }
