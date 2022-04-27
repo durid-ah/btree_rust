@@ -2,6 +2,12 @@ use crate::{Node, NodeRef};
 use std::rc::Rc;
 
 impl Node {
+    pub(super) fn update_children_indexes(&mut self) {
+        self.children.iter_mut()
+           .enumerate()
+           .for_each(|(i, c)| c.borrow_mut().index_in_parent = Some(i));
+    }
+
     /// Insert child node and put it into the proper order
     pub fn add_child(&mut self, child: NodeRef) {
         self.children.push(child);
@@ -17,8 +23,8 @@ impl Node {
         let mut current_idx = new_child_idx - 1;
 
         loop {
-            let mut current_child = self.children[current_idx].borrow_mut();
-            let mut new_child = self.children[new_child_idx].borrow_mut();
+            let current_child = self.children[current_idx].borrow();
+            let new_child = self.children[new_child_idx].borrow();
             let current_val = current_child.get_max_key();
             let new_child_val = new_child.get_min_key();
 
@@ -36,6 +42,8 @@ impl Node {
                 current_idx -= 1;
             }
         }
+
+        self.update_children_indexes()
     }
 
     /// Return a cloned pointer to the child node at a given index
@@ -91,6 +99,8 @@ mod child_tests {
 
         assert_eq!(first.borrow_mut().get_key(0), 1);
         assert_eq!(first.borrow_mut().get_key(0), 1);
+        assert_eq!(first.borrow_mut().index_in_parent.unwrap(), 0);
         assert_eq!(second.borrow_mut().get_key(0), 2);
+        assert_eq!(second.borrow_mut().index_in_parent.unwrap(), 1);
     }
 }

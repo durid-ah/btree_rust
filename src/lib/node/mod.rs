@@ -17,7 +17,7 @@ type WeakNodeRef = Weak<RefCell<Node>>;
 #[derive(Debug)]
 pub(crate) struct Node {
     pub parent: WeakNodeRef,
-    pub index_in_parent: Option<usize>, // TODO: Very likely useless
+    pub index_in_parent: Option<usize>,
     pub keys: Vec<usize>,
     pub children: Vec<NodeRef>,
 
@@ -122,7 +122,7 @@ impl Node {
         right_keys.reverse(); // ensure they are in the proper order
 
         // pop half of the children
-        for (right_child_idx, _) in ((mid_key_idx + 1)..child_len).rev().enumerate() {
+        for _ in (mid_key_idx + 1)..child_len {
             let node = self.children.pop().unwrap();
             node.borrow_mut().parent = Rc::downgrade(&right_node);
             right_children.push(node);
@@ -135,6 +135,7 @@ impl Node {
         right_node.borrow_mut().keys = right_keys;
         right_node.borrow_mut().parent = self.parent.clone();
 
+        self.update_children_indexes();
         (mid_key, right_node)
     }
 
@@ -166,7 +167,7 @@ impl Node {
         drop(merge_from_child);
 
         self.children.remove(merge_from_index);
-
+        self.update_children_indexes();
         Ok(())
     }
 

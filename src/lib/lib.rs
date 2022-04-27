@@ -1,15 +1,17 @@
 use crate::node::search_status::SearchStatus;
-use crate::BTreeError::ValueAlreadyExists;
+use crate::BTreeError::{NotFound, ValueAlreadyExists};
 use btree_delete_leaf as leaf_delete;
 use node::{node_utils::new_node_ref, Node, NodeRef};
 use std::rc::Rc;
 
 mod btree_delete_leaf;
+mod delete_inner;
 mod node;
 
 #[derive(Debug)]
 pub enum BTreeError {
     ValueAlreadyExists,
+    NotFound
 }
 
 pub struct BTree {
@@ -47,29 +49,32 @@ impl BTree {
         let (status, node_to_delete_from) = self.find(value);
 
         if !status.is_found() {
-            return Ok(()); // TODO: Should be error
+            return Err(NotFound);
         }
 
         let mut node_to_delete_from = node_to_delete_from.borrow_mut();
         let key_index_to_delete = status.unwrap();
         node_to_delete_from.keys.remove(key_index_to_delete);
 
+        let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
+        let is_leaf: bool = node_to_delete_from.is_leaf();
+
         // Handles root node and safe nodes
-        if node_to_delete_from.has_more_than_min_keys() || node_to_delete_from.has_min_key_count() {
+        if node_to_delete_from.has_more_than_min_keys()
+            || node_to_delete_from.has_min_key_count() || parent.is_none() {
             return Ok(());
         }
 
-        let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
-        let is_leaf: bool = node_to_delete_from.is_leaf();
-        // TODO: Remove index in parent reference
-        let child_idx_deleted_from = node_to_delete_from.index_in_parent;
-
+        let index_in_parent = node_to_delete_from.index_in_parent.unwrap();
         drop(node_to_delete_from);
 
+        if !is_leaf {
+
+        }
+
         // Leaf Node Cases
-        if is_leaf && parent.is_some() {
-            leaf_delete::delete_leaf(
-                parent.unwrap(), child_idx_deleted_from.unwrap());
+        else {
+            leaf_delete::delete_leaf(parent.unwrap(), index_in_parent);
             return Ok(());
         }
 
@@ -85,25 +90,27 @@ impl BTree {
 
     fn find(&mut self, value: usize) -> (SearchStatus, NodeRef) {
         let mut node: NodeRef = Rc::clone(&self.root);
-        let mut res = node.borrow_mut().find_key_index(value);
+        let mut search_result = node.borrow_mut().find_key_index(value);
+
+
         loop {
-            if res.is_found() {
-                return (res, node);
+            if search_result.is_found() {
+                return (search_result, node);
             }
 
-            let child_idx = res.unwrap() as isize;
+            let child_idx = search_result.unwrap() as isize;
             let node_option = node.borrow_mut().try_clone_child(child_idx);
 
             match node_option {
                 None => break,
                 Some(child) => {
                     node = child;
-                    res = node.borrow_mut().find_key_index(value);
+                    search_result = node.borrow_mut().find_key_index(value);
                 }
             }
         }
 
-        (res, node)
+        (search_result, node)
     }
 
     /// Get the node were you would insert the desired value
