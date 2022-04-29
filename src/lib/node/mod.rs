@@ -29,7 +29,7 @@ impl Node {
     pub fn new(order: usize) -> Self {
         Self {
             parent: Weak::new(),
-            index_in_parent: Option::None,
+            index_in_parent: None,
             keys: Vec::with_capacity(order - 1),
             children: Vec::with_capacity(order),
             min_keys: (order as f32 / 2_f32).ceil() as usize - 1,
@@ -97,7 +97,6 @@ impl Node {
         panic!("Unable to find value {}", key)
     }
 
-    //TODO: Change to split child too?
     /// Split the node down the middle and return the mid key and right
     /// node that broke off
     ///
@@ -122,10 +121,13 @@ impl Node {
         right_keys.reverse(); // ensure they are in the proper order
 
         // pop half of the children
-        for _ in (mid_key_idx + 1)..child_len {
-            let node = self.children.pop().unwrap();
-            node.borrow_mut().parent = Rc::downgrade(&right_node);
-            right_children.push(node);
+        for (idx, _) in ((mid_key_idx + 1)..child_len).enumerate().rev() {
+            let node_ref = self.children.pop().unwrap();
+            let mut node = node_ref.borrow_mut();
+            node.parent = Rc::downgrade(&right_node);
+            node.index_in_parent = Some(idx);
+            drop(node);
+            right_children.push(node_ref);
         }
         right_children.reverse(); // ensure they are in the proper order
 

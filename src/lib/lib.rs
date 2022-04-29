@@ -65,13 +65,9 @@ impl BTree {
             return Ok(());
         }
 
-
-        println!("{:?}", is_leaf);
         if !is_leaf {
             delete_inner::delete_inner(&mut node_to_delete_from, key_index_to_delete);
         }
-
-
 
         // Leaf Node Cases
         else {
@@ -519,6 +515,7 @@ mod tests {
         use crate::{BTree, SearchStatus};
 
         #[test]
+        // TODO: Test out the structure of the tree
         fn delete_inner_key_with_left_child_borrow_test()
         {
             let mut tree = BTree::new(4);

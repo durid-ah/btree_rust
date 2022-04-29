@@ -1,7 +1,7 @@
 use btree_rust::BTree;
 
 fn main() {
-    let mut tree = BTree::new(5);
+    let mut tree = BTree::new(4);
     let _ = tree.add(0);
     let _ = tree.add(5);
     let _ = tree.add(10);
@@ -11,8 +11,11 @@ fn main() {
     let _ = tree.add(30);
     let _ = tree.add(35);
     let _ = tree.add(40);
+    let _ = tree.add(45);
+    let _ = tree.add(31);
+    let _ = tree.add(32);
 
-    let res = tree.delete(5);
+    let _ = tree.delete(35);
 
     println!("Hello, world!");
 }
