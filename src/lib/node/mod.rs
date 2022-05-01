@@ -1,4 +1,4 @@
-use node_utils::{calculate_mid, new_node_ref};
+use node_utils::new_node_ref;
 use search_status::SearchStatus;
 use std::cell::{RefCell};
 use std::rc::{Rc, Weak};
@@ -65,36 +65,10 @@ impl Node {
     /// Found(i: usize) => The value exists and `i` is the index location
     /// NotFound(i:usize) => The value does not exist and `i` is where the item should be
     pub fn find_key_index(&self, key: usize) -> SearchStatus {
-        if self.keys.is_empty() {
-            return SearchStatus::NotFound(0);
+        match self.keys.binary_search(&key) {
+            Ok(i) => SearchStatus::Found(i),
+            Err(i) => SearchStatus::NotFound(i)
         }
-
-        let mut start = 0_isize;
-        let key_length = self.keys.len();
-        let mut end = (key_length - 1) as isize;
-
-        while end >= start {
-            let mid: isize = calculate_mid(start, end);
-            let mid_idx = mid as usize;
-
-            if self.keys[mid_idx] == key {
-                return SearchStatus::Found(mid_idx);
-            } else if mid_idx == 0 && self.keys[mid_idx] > key {
-                return SearchStatus::NotFound(mid_idx);
-            } else if mid_idx == (key_length - 1) && self.keys[mid_idx] < key {
-                return SearchStatus::NotFound(mid_idx + 1);
-            } else if self.keys[mid_idx] > key && self.keys[mid_idx - 1] < key {
-                return SearchStatus::NotFound(mid_idx);
-            }
-
-            if self.keys[mid_idx] > key {
-                end = mid - 1;
-            } else {
-                start = mid + 1;
-            }
-        }
-
-        panic!("Unable to find value {}", key)
     }
 
     /// Split the node down the middle and return the mid key and right
@@ -105,31 +79,25 @@ impl Node {
     /// node and `right_node` is the node broken off to the right
     pub fn split_node(&mut self) -> (usize, NodeRef) {
         let key_len = self.keys.len();
-        let child_len = self.children.len();
         let mid_key_idx = key_len / 2;
 
         let right_node = new_node_ref(self.order);
 
-        let mut right_keys = Vec::with_capacity(self.order - 1);
-        let mut right_children = Vec::with_capacity(self.order);
+        let right_keys = self.keys.split_off(mid_key_idx + 1);
+        let mut right_children =
+            if self.children.len() > 0 {
+                self.children.split_off(mid_key_idx + 1)
+            }
+            else
+            {
+                Vec::new()
+            };
 
-        // pop half of the kids
-        for _ in (mid_key_idx + 1)..key_len {
-            let key = self.keys.pop().unwrap();
-            right_keys.push(key);
-        }
-        right_keys.reverse(); // ensure they are in the proper order
-
-        // pop half of the children
-        for (idx, _) in ((mid_key_idx + 1)..child_len).enumerate().rev() {
-            let node_ref = self.children.pop().unwrap();
-            let mut node = node_ref.borrow_mut();
+        for (idx, val) in  right_children.iter_mut().enumerate() {
+            let mut node = val.borrow_mut();
             node.parent = Rc::downgrade(&right_node);
             node.index_in_parent = Some(idx);
-            drop(node);
-            right_children.push(node_ref);
         }
-        right_children.reverse(); // ensure they are in the proper order
 
         let mid_key = self.keys.pop().unwrap();
 
@@ -156,8 +124,7 @@ impl Node {
         let parent_key = self.keys.remove(parent_key_to_merge);
 
         let _ = self.merge_child_vectors(merge_into_index, merge_from_index);
-        self.children[merge_into_index]
-           .borrow_mut()
+        self.borrow_child_mut(merge_into_index)
            .add_key(parent_key);
 
         self.children.remove(merge_from_index);

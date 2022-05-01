@@ -1,5 +1,5 @@
 use crate::{Node, NodeRef};
-use std::rc::Rc;
+use std::{rc::Rc, cell::{Ref, RefMut}};
 
 impl Node {
     pub(super) fn update_children_indexes(&mut self) {
@@ -8,30 +8,34 @@ impl Node {
            .for_each(|(i, c)| c.borrow_mut().index_in_parent = Some(i));
     }
 
+    pub fn borrow_child(&self, index: usize) -> Ref<'_, Node> {
+        self.children[index].borrow()
+    }
+
+    pub fn borrow_child_mut(&self, index: usize) -> RefMut<'_, Node> {
+        self.children[index].borrow_mut()
+    }
+
     /// Insert child node and put it into the proper order
     pub fn add_child(&mut self, child: NodeRef) {
         self.children.push(child);
 
         let mut new_child_idx = self.children.len() - 1;
-        self.children[new_child_idx].borrow_mut().index_in_parent = Some(new_child_idx);
+        self.borrow_child_mut(new_child_idx).index_in_parent = Some(new_child_idx);
 
         // if the new child is in the first position there is no need for ordering
-        if new_child_idx == 0 {
-            return;
-        }
+        if new_child_idx == 0 { return; }
 
         let mut current_idx = new_child_idx - 1;
 
         loop {
-            let current_child = self.children[current_idx].borrow();
-            let new_child = self.children[new_child_idx].borrow();
+            let current_child = self.borrow_child(current_idx);
+            let new_child = self.borrow_child(new_child_idx);
             let current_val = current_child.get_max_key();
             let new_child_val = new_child.get_min_key();
 
-            if new_child_val > current_val {
-                // if the value is in the right spot end the loop
-                break;
-            }
+            // if the value is in the right spot end the loop
+            if new_child_val > current_val { break; }
 
             drop(new_child);
             drop(current_child);
