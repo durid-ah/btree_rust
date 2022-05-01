@@ -155,21 +155,33 @@ impl Node {
 
         let parent_key = self.keys.remove(parent_key_to_merge);
 
-        let mut merge_into_child = self.children[merge_into_index].borrow_mut();
-        let mut merge_from_child = self.children[merge_from_index].borrow_mut();
+        let _ = self.merge_child_vectors(merge_into_index, merge_from_index);
+        self.children[merge_into_index]
+           .borrow_mut()
+           .add_key(parent_key);
 
-        merge_into_child.keys.push(parent_key);
+        self.children.remove(merge_from_index);
+        self.update_children_indexes();
+        Ok(())
+    }
+
+    pub fn merge_child_vectors(
+        &mut self, merge_into: usize, merge_from: usize) -> Result<(), String> {
+
+        let merge_into_child = self.try_clone_child(merge_into as isize)
+           .ok_or(String::from("No child to merge"))?;
+        let mut merge_into_child = merge_into_child.borrow_mut();
+
+        let merge_from_child = self.try_clone_child(merge_from as isize)
+           .ok_or(String::from("No child to merge"))?;
+        let mut merge_from_child = merge_from_child.borrow_mut();
+
         merge_into_child.keys.append(&mut merge_from_child.keys);
         merge_into_child.keys.sort_unstable();
 
         // TODO: Sort the inserted children
         merge_into_child.children.append(&mut merge_from_child.children);
 
-        drop(merge_into_child);
-        drop(merge_from_child);
-
-        self.children.remove(merge_from_index);
-        self.update_children_indexes();
         Ok(())
     }
 

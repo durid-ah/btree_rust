@@ -59,6 +59,18 @@ impl BTree {
         let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
         let is_leaf: bool = node_to_delete_from.is_leaf();
 
+        // merge the children to the left and right of the deleted key
+        let _ = node_to_delete_from
+           .merge_child_vectors(
+               key_index_to_delete, key_index_to_delete + 1);
+
+        let child_to_split = node_to_delete_from
+           .try_clone_child(key_index_to_delete as isize);
+
+        if child_to_split.is_some() {
+            self.split_if_full(child_to_split.unwrap());
+        }
+
         // Handles root node and safe nodes
         if node_to_delete_from.has_more_than_min_keys()
             || node_to_delete_from.has_min_key_count() || parent.is_none() {
