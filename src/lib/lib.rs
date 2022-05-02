@@ -37,22 +37,14 @@ impl BTree {
 
     pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
         let (status, node_to_delete_from) = self.find(value);
-
-        if !status.is_found() {
-            return Err(NotFound);
-        }
-
         let mut node_to_delete_from = node_to_delete_from.borrow_mut();
         let key_index_to_delete = status.unwrap();
-        node_to_delete_from.keys.remove(key_index_to_delete);
 
+        if !status.is_found() { return Err(NotFound); }
+
+        node_to_delete_from.delete_key(key_index_to_delete);
         let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
         let is_leaf: bool = node_to_delete_from.is_leaf();
-
-        // merge the children to the left and right of the deleted key
-        let _ = node_to_delete_from
-           .merge_child_vectors(
-               key_index_to_delete, key_index_to_delete + 1);
 
         let child_to_split = node_to_delete_from
            .try_clone_child(key_index_to_delete as isize);
@@ -68,7 +60,8 @@ impl BTree {
         }
 
         if !is_leaf {
-            delete_inner::delete_inner(&mut node_to_delete_from, key_index_to_delete);
+            delete_inner::delete_inner(
+                &mut node_to_delete_from, key_index_to_delete);
         }
 
         // Leaf Node Cases

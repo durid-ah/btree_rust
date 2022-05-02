@@ -109,6 +109,13 @@ impl Node {
         (mid_key, right_node)
     }
 
+    pub fn delete_key(&mut self, index: usize) {
+        self.keys.remove(index);
+
+        // merge the children to the left and right of the deleted key
+        let _ = self.merge_child_vectors(index, index + 1);
+    }
+
     pub fn merge_children(
         &mut self, merge_into_index: usize, merge_from_index: usize) -> Result<(), String> {
         let diff = merge_into_index as isize - merge_from_index as isize;
