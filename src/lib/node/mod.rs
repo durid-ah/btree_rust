@@ -42,9 +42,7 @@ impl Node {
         self.keys.push(key);
         let mut new_key_idx = self.keys.len() - 1;
 
-        if new_key_idx == 0 {
-            return;
-        }
+        if new_key_idx == 0 { return; }
 
         // shift the key to the left until the values are in order
         let mut current_idx = new_key_idx - 1;
@@ -84,7 +82,7 @@ impl Node {
         let right_node = new_node_ref(self.order);
 
         let right_keys = self.keys.split_off(mid_key_idx + 1);
-        let mut right_children =
+        let mut right_children: Vec<NodeRef> =
             if self.children.len() > 0 {
                 self.children.split_off(mid_key_idx + 1)
             }
@@ -101,10 +99,12 @@ impl Node {
 
         let mid_key = self.keys.pop().unwrap();
 
-        right_node.borrow_mut().children = right_children;
-        right_node.borrow_mut().keys = right_keys;
-        right_node.borrow_mut().parent = self.parent.clone();
+        let mut right_ref = right_node.borrow_mut();
+        right_ref.children = right_children;
+        right_ref.keys = right_keys;
+        right_ref.parent = self.parent.clone();
 
+        drop(right_ref);
         self.update_children_indexes();
         (mid_key, right_node)
     }

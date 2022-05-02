@@ -21,27 +21,17 @@ pub struct BTree {
 
 impl BTree {
     pub fn new(order: usize) -> Self {
-        Self {
-            root: new_node_ref(order),
-            order,
-        }
+        Self { root: new_node_ref(order), order }
     }
 
     /// Add a value into the tree or return an error if the value already exists
     /// Works by searching each node for a possible location in every node
     /// until there is no child to insert it in
     pub fn add(&mut self, value: usize) -> Result<(), BTreeError> {
-        let node_res = self.find_insert_node(value);
-
-        if let Err(err) = node_res {
-            return Err(err);
-        }
-
-        let node = node_res.unwrap();
+        let node = self.find_insert_node(value)?;
         node.borrow_mut().add_key(value);
 
         self.split_if_full(node);
-
         Ok(())
     }
 

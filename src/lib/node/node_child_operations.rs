@@ -8,11 +8,11 @@ impl Node {
            .for_each(|(i, c)| c.borrow_mut().index_in_parent = Some(i));
     }
 
-    pub fn borrow_child(&self, index: usize) -> Ref<'_, Node> {
+    pub(super) fn borrow_child(&self, index: usize) -> Ref<'_, Node> {
         self.children[index].borrow()
     }
 
-    pub fn borrow_child_mut(&self, index: usize) -> RefMut<'_, Node> {
+    pub(super) fn borrow_child_mut(&self, index: usize) -> RefMut<'_, Node> {
         self.children[index].borrow_mut()
     }
 
