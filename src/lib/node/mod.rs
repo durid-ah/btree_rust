@@ -6,6 +6,7 @@ use std::rc::{Rc, Weak};
 pub(crate) mod node_child_operations;
 pub(crate) mod node_utils;
 pub(crate) mod search_status;
+mod delete_rebalance;
 
 pub(crate) type NodeRef = Rc<RefCell<Node>>;
 type WeakNodeRef = Weak<RefCell<Node>>;

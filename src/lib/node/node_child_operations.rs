@@ -1,6 +1,8 @@
 use crate::{Node, NodeRef};
 use std::{rc::Rc, cell::{Ref, RefMut}};
 
+pub type OpResult = Result<(),()>;
+
 impl Node {
     pub(super) fn update_children_indexes(&mut self) {
         self.children.iter_mut()
@@ -57,6 +59,32 @@ impl Node {
         }
 
         Some(Rc::clone(&self.children[index as usize]))
+    }
+
+    pub fn try_move_key_from_left_child(&mut self, index: usize) -> OpResult
+    {
+        self.try_move_key_from_child(index, true)
+    }
+
+    pub fn try_move_key_from_right_child(&mut self, index: usize) -> OpResult
+    {
+        self.try_move_key_from_child(index, false)
+    }
+
+    pub fn try_move_key_from_child(&mut self, index: usize, is_left: bool) -> OpResult
+    {
+        let child_ref: NodeRef = self
+            .try_clone_child(index as isize).ok_or(())?;
+            
+        let mut child = child_ref.borrow_mut();
+        let key_idx_to_move = if is_left { 0 } else { child.keys.len() };    
+        if child.has_more_than_min_keys() {
+            let child_key = child.keys.remove(key_idx_to_move);
+            self.add_key(child_key);
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 }
 

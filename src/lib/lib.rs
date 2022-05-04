@@ -36,17 +36,19 @@ impl BTree {
     }
 
     pub fn delete(&mut self, value: usize) -> Result<(), BTreeError> {
-        let (status, node_to_delete_from) = self.find(value);
-        let mut node_to_delete_from = node_to_delete_from.borrow_mut();
+        let (status, node_to_delete_from): (SearchStatus, NodeRef) = self.find(value);
+        let mut node_to_delete_from_ref = node_to_delete_from.borrow_mut();
         let key_index_to_delete = status.unwrap();
 
         if !status.is_found() { return Err(NotFound); }
 
-        node_to_delete_from.delete_key(key_index_to_delete);
-        let parent: Option<NodeRef> = node_to_delete_from.parent.upgrade();
-        let is_leaf: bool = node_to_delete_from.is_leaf();
+        node_to_delete_from_ref.delete_key(key_index_to_delete);
+        // self.split_if_full(node_to_delete_from); TODO: Fix this
 
-        let child_to_split = node_to_delete_from
+        let parent: Option<NodeRef> = node_to_delete_from_ref.parent.upgrade();
+        let is_leaf: bool = node_to_delete_from_ref.is_leaf();
+
+        let child_to_split: Option<NodeRef> = node_to_delete_from_ref
            .try_clone_child(key_index_to_delete as isize);
 
         if child_to_split.is_some() {
@@ -54,20 +56,20 @@ impl BTree {
         }
 
         // Handles root node and safe nodes
-        if node_to_delete_from.has_more_than_min_keys()
-            || node_to_delete_from.has_min_key_count() || parent.is_none() {
+        if node_to_delete_from_ref.has_more_than_min_keys()
+            || node_to_delete_from_ref.has_min_key_count() || parent.is_none() {
             return Ok(());
         }
 
         if !is_leaf {
             delete_inner::delete_inner(
-                &mut node_to_delete_from, key_index_to_delete);
+                &mut node_to_delete_from_ref, key_index_to_delete);
         }
 
         // Leaf Node Cases
         else {
-            let index_in_parent = node_to_delete_from.index_in_parent.unwrap();
-            drop(node_to_delete_from);
+            let index_in_parent = node_to_delete_from_ref.index_in_parent.unwrap();
+            drop(node_to_delete_from_ref);
             leaf_delete::delete_leaf(parent.unwrap(), index_in_parent);
         }
 

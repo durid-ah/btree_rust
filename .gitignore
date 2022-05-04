@@ -1,1 +1,7 @@
 /target
+.idea/codeStyles/codeStyleConfig.xml
+.idea/vcs.xml
+.idea/modules.xml
+.idea/btree_rust.iml
+.vscode/launch.json
+.idea/.gitignore
